@@ -55,9 +55,7 @@
 #region Using Statements
 using System;
 using System.Collections.Generic;
-#if WIIU_GAMEPAD
 using System.Runtime.InteropServices;
-#endif
 
 using SDL2;
 
@@ -460,12 +458,16 @@ namespace Microsoft.Xna.Framework
 					{
 						string text;
 
+						// Based on the SDL2# LPUtf8StrMarshaler
 						unsafe
 						{
-							var endPtr = evt.text.text;
-							while (*endPtr != 0) endPtr++;
-							var bytes = new byte[endPtr - evt.text.text];
-							System.Runtime.InteropServices.Marshal.Copy((IntPtr)evt.text.text, bytes, 0, bytes.Length);
+							byte* endPtr = evt.text.text;
+							while (*endPtr != 0)
+							{
+								endPtr++;
+							}
+							byte[] bytes = new byte[endPtr - evt.text.text];
+							Marshal.Copy((IntPtr) evt.text.text, bytes, 0, bytes.Length);
 							text = System.Text.Encoding.UTF8.GetString(bytes);
 						}
 
