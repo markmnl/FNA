@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 using Microsoft.Xna.Framework.Audio;
 #endregion
@@ -156,6 +157,9 @@ namespace Microsoft.Xna.Framework.Media
 		private Vorbisfile.OggVorbis_File vorbisFile = new Vorbisfile.OggVorbis_File();
 		private byte[] vorbisBuffer = new byte[4096];
 
+		private Thread songThread;
+		private bool exitThread;
+
 		#endregion
 
 		#region Constructors, Deconstructor, Dispose()
@@ -181,6 +185,7 @@ namespace Microsoft.Xna.Framework.Media
 				fileInfo.rate,
 				(AudioChannels) fileInfo.channels
 			);
+
 			IsDisposed = false;
 		}
 
@@ -214,6 +219,7 @@ namespace Microsoft.Xna.Framework.Media
 		{
 			if (disposing)
 			{
+				Stop();
 				soundStream.Dispose();
 				soundStream = null;
 				Vorbisfile.ov_clear(ref vorbisFile);
@@ -230,7 +236,13 @@ namespace Microsoft.Xna.Framework.Media
 			soundStream.BufferNeeded += QueueBuffer;
 			QueueBuffer(null, null);
 			QueueBuffer(null, null);
-			soundStream.Play();
+			soundStream.Play(false);
+
+			exitThread = false;
+			songThread = new Thread(SongThread);
+			songThread.IsBackground = true;
+			songThread.Start();
+
 			PlayCount += 1;
 		}
 
@@ -246,6 +258,12 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal void Stop()
 		{
+			exitThread = true;
+			if (songThread != null && Thread.CurrentThread != songThread)
+			{
+				songThread.Join();
+			}
+
 			soundStream.Stop();
 			soundStream.BufferNeeded -= QueueBuffer;
 			PlayCount = 0;
@@ -304,6 +322,23 @@ namespace Microsoft.Xna.Framework.Media
 		internal void OnFinishedPlaying()
 		{
 			MediaPlayer.OnSongFinishedPlaying(null, null);
+		}
+
+		#endregion
+
+		#region Private Song Update Thread
+
+		private void SongThread()
+		{
+			while (!exitThread)
+			{
+				exitThread = !soundStream.Update();
+				if (!exitThread)
+				{
+					// Arbitrarily 1 frame in a 15Hz game -flibit
+					Thread.Sleep(67);
+				}
+			}
 		}
 
 		#endregion

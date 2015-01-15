@@ -488,6 +488,12 @@ namespace Microsoft.Xna.Framework
 
 		public override bool BeforeUpdate(GameTime gameTime)
 		{
+			// Update our OpenAL context
+			if (OpenALDevice.Instance != null)
+			{
+				OpenALDevice.Instance.Update();
+			}
+
 			return true;
 		}
 
