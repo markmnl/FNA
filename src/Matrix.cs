@@ -2053,6 +2053,22 @@ namespace Microsoft.Xna.Framework
 			result = ret;
 		}
 
+		public static Matrix Transform(Matrix value, Quaternion rotation)
+		{
+			Matrix result;
+			Transform(ref value, ref rotation, out result);
+			return result;
+		}
+
+		public static void Transform(
+			ref Matrix value,
+			ref Quaternion rotation,
+			out Matrix result
+		) {
+			Matrix rotMatrix = CreateFromQuaternion(rotation);
+			Multiply(ref value, ref rotMatrix, out result);
+		}
+
 		#endregion
 
 		#region Internal Static Methods

@@ -21,10 +21,14 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 			set
 			{
-				samplers[index] = value;
-				if (!graphicsDevice.ModifiedSamplers.Contains(index))
+				// FIXME: Bring this back after the IGLDevice is established.
+				// if (samplers[index] != value)
 				{
-					graphicsDevice.ModifiedSamplers.Enqueue(index);
+					samplers[index] = value;
+					if (!graphicsDevice.ModifiedSamplers.Contains(index))
+					{
+						graphicsDevice.ModifiedSamplers.Enqueue(index);
+					}
 				}
 			}
 		}

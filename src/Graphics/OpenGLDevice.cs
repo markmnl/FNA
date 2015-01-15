@@ -127,6 +127,12 @@ namespace Microsoft.Xna.Framework.Graphics
 				private set;
 			}
 
+			public int BufferSize
+			{
+				get;
+				private set;
+			}
+
 			public GLenum Dynamic
 			{
 				get;
@@ -142,12 +148,13 @@ namespace Microsoft.Xna.Framework.Graphics
 				uint handle;
 				graphicsDevice.GLDevice.glGenBuffers(1, out handle);
 				Handle = handle;
+				BufferSize = vertexStride * vertexCount;
 				Dynamic = dynamic ? GLenum.GL_STREAM_DRAW : GLenum.GL_STATIC_DRAW;
 
 				graphicsDevice.GLDevice.BindVertexBuffer(this);
 				graphicsDevice.GLDevice.glBufferData(
 					GLenum.GL_ARRAY_BUFFER,
-					(IntPtr) (vertexStride * vertexCount),
+					(IntPtr) BufferSize,
 					IntPtr.Zero,
 					Dynamic
 				);
@@ -254,6 +261,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		private Blend srcBlendAlpha = Blend.One;
 		private Blend dstBlendAlpha = Blend.Zero;
 		private ColorWriteChannels colorWriteEnable = ColorWriteChannels.All;
+		private ColorWriteChannels colorWriteEnable1 = ColorWriteChannels.All;
+		private ColorWriteChannels colorWriteEnable2 = ColorWriteChannels.All;
+		private ColorWriteChannels colorWriteEnable3 = ColorWriteChannels.All;
 
 		#endregion
 
@@ -266,6 +276,44 @@ namespace Microsoft.Xna.Framework.Graphics
 		#endregion
 
 		#region Stencil State Variables
+
+		public int ReferenceStencil
+		{
+			get
+			{
+				return stencilRef;
+			}
+			set
+			{
+				if (value != stencilRef)
+				{
+					stencilRef = value;
+					if (separateStencilEnable)
+					{
+						glStencilFuncSeparate(
+							GLenum.GL_FRONT,
+							XNAToGL.CompareFunc[stencilFunc],
+							stencilRef,
+							stencilMask
+						);
+						glStencilFuncSeparate(
+							GLenum.GL_BACK,
+							XNAToGL.CompareFunc[ccwStencilFunc],
+							stencilRef,
+							stencilMask
+						);
+					}
+					else
+					{
+						glStencilFunc(
+							XNAToGL.CompareFunc[stencilFunc],
+							stencilRef,
+							stencilMask
+						);
+					}
+				}
+			}
+		}
 
 		private bool stencilEnable = false;
 		private int stencilWriteMask = -1; // AKA 0xFFFFFFFF, ugh -flibit
@@ -718,17 +766,59 @@ namespace Microsoft.Xna.Framework.Graphics
 						XNAToGL.BlendEquation[blendOpAlpha]
 					);
 				}
+			}
 
-				if (blendState.ColorWriteChannels != colorWriteEnable)
-				{
-					colorWriteEnable = blendState.ColorWriteChannels;
-					glColorMask(
-						(colorWriteEnable & ColorWriteChannels.Red) != 0,
-						(colorWriteEnable & ColorWriteChannels.Green) != 0,
-						(colorWriteEnable & ColorWriteChannels.Blue) != 0,
-						(colorWriteEnable & ColorWriteChannels.Alpha) != 0
-					);
-				}
+			if (blendState.ColorWriteChannels != colorWriteEnable)
+			{
+				colorWriteEnable = blendState.ColorWriteChannels;
+				glColorMask(
+					(colorWriteEnable & ColorWriteChannels.Red) != 0,
+					(colorWriteEnable & ColorWriteChannels.Green) != 0,
+					(colorWriteEnable & ColorWriteChannels.Blue) != 0,
+					(colorWriteEnable & ColorWriteChannels.Alpha) != 0
+				);
+			}
+			/* FIXME: So how exactly do we factor in
+			 * COLORWRITEENABLE for buffer 0? Do we just assume that
+			 * the default is just buffer 0, and all other calls
+			 * update the other write masks afterward? Or do we
+			 * assume that COLORWRITEENABLE only touches 0, and the
+			 * other 3 buffers are left alone unless we don't have
+			 * EXT_draw_buffers2?
+			 * -flibit
+			 */
+			if (blendState.ColorWriteChannels1 != colorWriteEnable1)
+			{
+				colorWriteEnable1 = blendState.ColorWriteChannels1;
+				glColorMaskIndexedEXT(
+					1,
+					(colorWriteEnable1 & ColorWriteChannels.Red) != 0,
+					(colorWriteEnable1 & ColorWriteChannels.Green) != 0,
+					(colorWriteEnable1 & ColorWriteChannels.Blue) != 0,
+					(colorWriteEnable1 & ColorWriteChannels.Alpha) != 0
+				);
+			}
+			if (blendState.ColorWriteChannels2 != colorWriteEnable2)
+			{
+				colorWriteEnable2 = blendState.ColorWriteChannels2;
+				glColorMaskIndexedEXT(
+					2,
+					(colorWriteEnable2 & ColorWriteChannels.Red) != 0,
+					(colorWriteEnable2 & ColorWriteChannels.Green) != 0,
+					(colorWriteEnable2 & ColorWriteChannels.Blue) != 0,
+					(colorWriteEnable2 & ColorWriteChannels.Alpha) != 0
+				);
+			}
+			if (blendState.ColorWriteChannels3 != colorWriteEnable3)
+			{
+				colorWriteEnable3 = blendState.ColorWriteChannels3;
+				glColorMaskIndexedEXT(
+					3,
+					(colorWriteEnable3 & ColorWriteChannels.Red) != 0,
+					(colorWriteEnable3 & ColorWriteChannels.Green) != 0,
+					(colorWriteEnable3 & ColorWriteChannels.Blue) != 0,
+					(colorWriteEnable3 & ColorWriteChannels.Alpha) != 0
+				);
 			}
 		}
 
@@ -1143,13 +1233,11 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void SetVertexBufferData<T>(
 			OpenGLVertexBuffer handle,
-			int bufferSize,
 			int elementSizeInBytes,
 			int offsetInBytes,
 			T[] data,
 			int startIndex,
 			int elementCount,
-			int vertexStride,
 			SetDataOptions options
 		) where T : struct {
 			BindVertexBuffer(handle);
@@ -1158,7 +1246,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			{
 				glBufferData(
 					GLenum.GL_ARRAY_BUFFER,
-					(IntPtr) bufferSize,
+					(IntPtr) handle.BufferSize,
 					IntPtr.Zero,
 					handle.Dynamic
 				);
@@ -1508,6 +1596,18 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#endregion
 
+		#region glGenerateMipmap Method
+
+		public void GenerateTargetMipmaps(OpenGLTexture target)
+		{
+			OpenGLTexture prevTex = Textures[0];
+			BindTexture(target);
+			glGenerateMipmap(target.Target);
+			BindTexture(prevTex);
+		}
+
+		#endregion
+
 		#region Framebuffer Methods
 
 		public void BindFramebuffer(uint handle)
@@ -1763,7 +1863,7 @@ namespace Microsoft.Xna.Framework.Graphics
 						GLenum.GL_FRAMEBUFFER,
 						GLenum.GL_STENCIL_ATTACHMENT,
 						GLenum.GL_RENDERBUFFER,
-						renderbuffer
+						0
 					);
 				}
 				currentDepthStencilFormat = depthFormat;

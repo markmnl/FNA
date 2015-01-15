@@ -7,6 +7,23 @@
  */
 #endregion
 
+#region USE_SCANCODES Option
+// #define USE_SCANCODES
+/* XNA Keys are based on keycodes, rather than scancodes.
+ *
+ * With SDL2 you can actually pick between SDL_Keycode and SDL_Scancode, but
+ * scancodes will not be accurate to XNA4. The benefit is that scancodes will
+ * essentially ignore "foreign" keyboard layouts, making default keyboard
+ * layouts work out of the box everywhere (unless the actual symbol for the keys
+ * matters in your game).
+ *
+ * At the same time, the TextInputEXT extension will still read the actual chars
+ * correctly, so you can (mostly) have your cake and eat it too if you don't
+ * care about your bindings menu not making a lot of sense on foreign layouts.
+ * -flibit
+ */
+#endregion
+
 #region THREADED_GL Option
 // #define THREADED_GL
 /* Ah, so I see you've run into some issues with threaded GL...
@@ -38,9 +55,7 @@
 #region Using Statements
 using System;
 using System.Collections.Generic;
-#if WIIU_GAMEPAD
 using System.Runtime.InteropServices;
-#endif
 
 using SDL2;
 
@@ -262,7 +277,11 @@ namespace Microsoft.Xna.Framework
 					// Keyboard
 					if (evt.type == SDL.SDL_EventType.SDL_KEYDOWN)
 					{
+#if USE_SCANCODES
 						Keys key = SDL2_KeyboardUtil.ToXNA(evt.key.keysym.scancode);
+#else
+						Keys key = SDL2_KeyboardUtil.ToXNA(evt.key.keysym.sym);
+#endif
 						if (!keys.Contains(key))
 						{
 							keys.Add(key);
@@ -271,7 +290,11 @@ namespace Microsoft.Xna.Framework
 					}
 					else if (evt.type == SDL.SDL_EventType.SDL_KEYUP)
 					{
+#if USE_SCANCODES
 						Keys key = SDL2_KeyboardUtil.ToXNA(evt.key.keysym.scancode);
+#else
+						Keys key = SDL2_KeyboardUtil.ToXNA(evt.key.keysym.sym);
+#endif
 						if (keys.Remove(key))
 						{
 							INTERNAL_TextInputOut(key);
@@ -434,7 +457,20 @@ namespace Microsoft.Xna.Framework
 					else if (evt.type == SDL.SDL_EventType.SDL_TEXTINPUT && !INTERNAL_TextInputSuppress)
 					{
 						string text;
-						unsafe { text = new string((char*) evt.text.text); }
+
+						// Based on the SDL2# LPUtf8StrMarshaler
+						unsafe
+						{
+							byte* endPtr = evt.text.text;
+							while (*endPtr != 0)
+							{
+								endPtr++;
+							}
+							byte[] bytes = new byte[endPtr - evt.text.text];
+							Marshal.Copy((IntPtr) evt.text.text, bytes, 0, bytes.Length);
+							text = System.Text.Encoding.UTF8.GetString(bytes);
+						}
+
 						if (text.Length > 0)
 						{
 							TextInputEXT.OnTextInput(text[0]);

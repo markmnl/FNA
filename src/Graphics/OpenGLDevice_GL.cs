@@ -312,6 +312,15 @@ namespace Microsoft.Xna.Framework.Graphics
 		);
 		private ColorMask glColorMask;
 
+		private delegate void ColorMaskIndexedEXT(
+			uint buf,
+			bool red,
+			bool green,
+			bool blue,
+			bool alpha
+		);
+		private ColorMaskIndexedEXT glColorMaskIndexedEXT;
+
 		/* END BLEND STATE FUNCTIONS */
 
 		/* BEGIN DEPTH/STENCIL STATE FUNCTIONS */
@@ -606,6 +615,9 @@ namespace Microsoft.Xna.Framework.Graphics
 			IntPtr pixels
 		);
 		public ReadPixels glReadPixels;
+
+		public delegate void GenerateMipmap(GLenum target);
+		public GenerateMipmap glGenerateMipmap;
 
 		public delegate void GenFramebuffers(
 			int n,
@@ -1264,6 +1276,10 @@ namespace Microsoft.Xna.Framework.Graphics
 					TryGetFramebufferEP("glFramebufferRenderbuffer"),
 					typeof(FramebufferRenderbuffer)
 				);
+				glGenerateMipmap = (GenerateMipmap) Marshal.GetDelegateForFunctionPointer(
+					TryGetFramebufferEP("glGenerateMipmap"),
+					typeof(GenerateMipmap)
+				);
 #if !DISABLE_FAUXBACKBUFFER
 				glBlitFramebuffer = (BlitFramebuffer) Marshal.GetDelegateForFunctionPointer(
 					TryGetFramebufferEP("glBlitFramebuffer"),
@@ -1308,6 +1324,19 @@ namespace Microsoft.Xna.Framework.Graphics
 			catch
 			{
 				SupportsHardwareInstancing = false;
+			}
+
+			/* EXT_draw_buffers2 is probably used by nobody. */
+			try
+			{
+				glColorMaskIndexedEXT = (ColorMaskIndexedEXT) Marshal.GetDelegateForFunctionPointer(
+					SDL.SDL_GL_GetProcAddress("glColorMaskIndexedEXT"),
+					typeof(ColorMaskIndexedEXT)
+				);
+			}
+			catch
+			{
+				// FIXME: SupportsIndependentWriteMasks? -flibit
 			}
 
 #if DEBUG

@@ -220,6 +220,7 @@ namespace Microsoft.Xna.Framework.Audio
 					INTERNAL_instancePitches.Clear();
 					INTERNAL_queuedPlayback = false;
 				}
+				INTERNAL_category.INTERNAL_removeActiveCue(this);
 				IsDisposed = true;
 			}
 		}
@@ -447,8 +448,11 @@ namespace Microsoft.Xna.Framework.Audio
 			// User control updates
 			if (INTERNAL_data.IsUserControlled)
 			{
+				string varName = INTERNAL_data.UserControlVariable;
 				if (	INTERNAL_userControlledPlaying &&
-					INTERNAL_controlledValue != GetVariable(INTERNAL_data.UserControlVariable)	)
+					(INTERNAL_baseEngine.INTERNAL_isGlobalVariable(varName) ?
+						(INTERNAL_controlledValue != INTERNAL_baseEngine.GetGlobalVariable(varName)) :
+						(INTERNAL_controlledValue != GetVariable(INTERNAL_data.UserControlVariable)))	)
 				{
 					// TODO: Crossfading
 					foreach (SoundEffectInstance sfi in INTERNAL_instancePool)
@@ -545,6 +549,10 @@ namespace Microsoft.Xna.Framework.Audio
 				{
 					Dispose();
 				}
+				else
+				{
+					INTERNAL_category.INTERNAL_removeActiveCue(this);
+				}
 				return false;
 			}
 			return true;
@@ -567,16 +575,15 @@ namespace Microsoft.Xna.Framework.Audio
 			if (INTERNAL_data.IsUserControlled)
 			{
 				INTERNAL_userControlledPlaying = true;
-				try
+				if (INTERNAL_baseEngine.INTERNAL_isGlobalVariable(INTERNAL_data.UserControlVariable))
 				{
-					INTERNAL_controlledValue = GetVariable(
+					INTERNAL_controlledValue = INTERNAL_baseEngine.GetGlobalVariable(
 						INTERNAL_data.UserControlVariable
 					);
 				}
-				catch
+				else
 				{
-					// It's a global variable we're looking for!
-					INTERNAL_controlledValue = INTERNAL_baseEngine.GetGlobalVariable(
+					INTERNAL_controlledValue = GetVariable(
 						INTERNAL_data.UserControlVariable
 					);
 				}

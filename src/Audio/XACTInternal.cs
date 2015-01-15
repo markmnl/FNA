@@ -373,9 +373,77 @@ namespace Microsoft.Xna.Framework.Audio
 			DSPReverbEffect effect = (DSPReverbEffect) Effect;
 
 			// Apply the value to the parameter
-			if (index == 17)
+			if (index == 0)
 			{
-				effect.SetGain(Parameters[index].Value);
+				effect.SetReflectionsDelay(Parameters[index].Value);
+			}
+			else if (index == 1)
+			{
+				effect.SetReverbDelay(Parameters[index].Value);
+			}
+			else if (index == 2)
+			{
+				effect.SetPositionLeft(Parameters[index].Value);
+			}
+			else if (index == 3)
+			{
+				effect.SetPositionRight(Parameters[index].Value);
+			}
+			else if (index == 4)
+			{
+				effect.SetPositionLeftMatrix(Parameters[index].Value);
+			}
+			else if (index == 5)
+			{
+				effect.SetPositionRightMatrix(Parameters[index].Value);
+			}
+			else if (index == 6)
+			{
+				effect.SetEarlyDiffusion(Parameters[index].Value);
+			}
+			else if (index == 7)
+			{
+				effect.SetLateDiffusion(Parameters[index].Value);
+			}
+			else if (index == 8)
+			{
+				effect.SetLowEQGain(Parameters[index].Value);
+			}
+			else if (index == 9)
+			{
+				effect.SetLowEQCutoff(Parameters[index].Value);
+			}
+			else if (index == 10)
+			{
+				effect.SetHighEQGain(Parameters[index].Value);
+			}
+			else if (index == 11)
+			{
+				effect.SetHighEQCutoff(Parameters[index].Value);
+			}
+			else if (index == 12)
+			{
+				effect.SetRearDelay(Parameters[index].Value);
+			}
+			else if (index == 13)
+			{
+				effect.SetRoomFilterFrequency(Parameters[index].Value);
+			}
+			else if (index == 14)
+			{
+				effect.SetRoomFilterMain(Parameters[index].Value);
+			}
+			else if (index == 15)
+			{
+				effect.SetRoomFilterHighFrequency(Parameters[index].Value);
+			}
+			else if (index == 16)
+			{
+				effect.SetReflectionsGain(Parameters[index].Value);
+			}
+			else if (index == 17)
+			{
+				effect.SetReverbGain(Parameters[index].Value);
 			}
 			else if (index == 18)
 			{
@@ -384,6 +452,14 @@ namespace Microsoft.Xna.Framework.Audio
 			else if (index == 19)
 			{
 				effect.SetDensity(Parameters[index].Value);
+			}
+			else if (index == 20)
+			{
+				effect.SetRoomSize(Parameters[index].Value);
+			}
+			else if (index == 21)
+			{
+				effect.SetWetDryMix(Parameters[index].Value);
 			}
 			else
 			{

@@ -64,20 +64,20 @@ namespace Microsoft.Xna.Framework.Audio
 			using (Stream stream = TitleContainer.OpenStream(settingsFile))
 			using (BinaryReader reader = new BinaryReader(stream))
 			{
-				// Check the file header. Should be 'XGFS'
+				// Check the file header. Should be 'XGSF'
 				if (reader.ReadUInt32() != 0x46534758)
 				{
-					throw new ArgumentException("XGFS format not recognized!");
+					throw new ArgumentException("XGSF format not recognized!");
 				}
 
 				// Check the Content and Tool versions
 				if (reader.ReadUInt16() != ContentVersion)
 				{
-					throw new ArgumentException("XGFS Content version!");
+					throw new ArgumentException("XGSF Content version!");
 				}
 				if (reader.ReadUInt16() != 42)
 				{
-					throw new ArgumentException("XGFS Tool version!");
+					throw new ArgumentException("XGSF Tool version!");
 				}
 
 				// Unknown value
@@ -86,7 +86,7 @@ namespace Microsoft.Xna.Framework.Audio
 				// Last Modified, Unused
 				reader.ReadUInt64();
 
-				// Unknown value
+				// XACT Version, Unused
 				reader.ReadByte();
 
 				// Number of AudioCategories
@@ -95,11 +95,11 @@ namespace Microsoft.Xna.Framework.Audio
 				// Number of XACT Variables
 				ushort numVariables = reader.ReadUInt16();
 
-				// Unknown value, KEY#1 Length?
-				reader.ReadUInt16();
+				// KEY#1 Length
+				/*ushort numKeyOne =*/ reader.ReadUInt16();
 
-				// Unknown value, KEY#2 Length?
-				reader.ReadUInt16();
+				// KEY#2 Length
+				/*ushort numKeyTwo =*/ reader.ReadUInt16();
 
 				// Number of RPC Variables
 				ushort numRPCs = reader.ReadUInt16();
@@ -114,14 +114,14 @@ namespace Microsoft.Xna.Framework.Audio
 				// Variable Offset in XGS File
 				uint variableOffset = reader.ReadUInt32();
 
-				// Unknown value, KEY#1 Offset?
-				reader.ReadUInt32();
+				// KEY#1 Offset
+				/*uint keyOneOffset =*/ reader.ReadUInt32();
 
 				// Category Name Index Offset, unused
 				reader.ReadUInt32();
 
-				// Unknown value, KEY#2 Offset?
-				reader.ReadUInt32();
+				// KEY#2 Offset
+				/*uint keyTwoOffset =*/ reader.ReadUInt32();
 
 				// Variable Name Index Offset, unused
 				reader.ReadUInt32();
@@ -138,6 +138,59 @@ namespace Microsoft.Xna.Framework.Audio
 				// DSP Preset/Parameter Offsets in XGS File
 				uint dspPresetOffset = reader.ReadUInt32();
 				uint dspParameterOffset = reader.ReadUInt32();
+
+				/* Unknown table #1
+				reader.BaseStream.Seek(keyOneOffset, SeekOrigin.Begin);
+				for (int i = 0; i < numKeyOne; i += 1)
+				{
+					// Appears to consistently be 16 shorts?
+					System.Console.WriteLine(reader.ReadInt16());
+				}
+				/* OhGodNo
+				 *  1, -1,  4, -1,
+				 *  3, -1, -1,  7,
+				 * -1,  2,  5, -1,
+				 *  6,  0, -1, -1
+				 *
+				 * Naddachance
+				 *  1, -1,  4, -1,
+				 *  5, -1, -1, -1,
+				 * -1,  2, -1, -1,
+				 *  3,  0, -1, -1
+				 *
+				 * TFA
+				 *  1, -1, -1, -1,
+				 * -1, -1, -1, -1,
+				 * -1,  2, -1, -1,
+				 * -1, -0, -1, -1
+				 */
+
+				/* Unknown table #2
+				reader.BaseStream.Seek(keyTwoOffset, SeekOrigin.Begin);
+				for (int i = 0; i < numKeyTwo; i += 1)
+				{
+					// Appears to be between 16-20 shorts?
+					System.Console.WriteLine(reader.ReadInt16());
+				}
+				/* OhGodNo
+				 *  2,  7,  1, -1,
+				 * -1, 10, 19, -1,
+				 *  11, 3, -1, -1,
+				 *  8, -1, 14,  5,
+				 * 12,  0,  4,  6
+				 *
+				 * Naddachance
+				 *  2,  3, -1, -1,
+				 *  9, -1,  7, -1,
+				 * 10,  0,  1,  5,
+				 * -1, -1, -1, -1
+				 *
+				 * TFA
+				 *  2,  3, -1, -1,
+				 * -1, -1, -1, -1,
+				 * -1,  0,  1,  5,
+				 * -1, -1, -1, -1
+				 */
 
 				// Obtain the Audio Category Names
 				reader.BaseStream.Seek(categoryNameOffset, SeekOrigin.Begin);
@@ -486,11 +539,16 @@ namespace Microsoft.Xna.Framework.Audio
 				 * What if there's more than one?
 				 * -flibit
 				 */
-				// FIXME: Why don't we use the RPC calc here...? -flibit
 				curDSP.SetParameter(
 					(int) curRPC.Parameter - (int) RPCParameter.NUM_PARAMETERS,
-					GetGlobalVariable(curVar.Name)
+					curRPC.CalculateRPC(GetGlobalVariable(curVar.Name))
 				);
+			}
+
+			// Apply all DSP changes once they have been made
+			foreach (DSPPreset curDSP in INTERNAL_dspPresets.Values)
+			{
+				curDSP.Effect.CommitChanges();
 			}
 
 			// Update Cues
