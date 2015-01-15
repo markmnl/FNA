@@ -145,6 +145,7 @@ namespace Microsoft.Xna.Framework.Audio
 #if DEBUG
 			CheckALError();
 #endif
+
 			for (int i = 0; i < instancePool.Count; i += 1)
 			{
 				if (instancePool[i].State == SoundState.Stopped)
