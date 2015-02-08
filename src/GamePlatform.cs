@@ -304,7 +304,7 @@ namespace Microsoft.Xna.Framework
 
 		#region Public Static Methods
 
-		public static GamePlatform Create(Game game)
+		public static GamePlatform Create(Game game, bool noAVI)
 		{
 			/* I suspect you may have an urge to put an #if in here for new
 			 * GamePlatform implementations.
@@ -315,7 +315,14 @@ namespace Microsoft.Xna.Framework
 			 * No amount of whining will get me to budge on this.
 			 * -flibit
 			 */
-			return new SDL2_GamePlatform(game);
+			if (noAVI)
+			{
+				return new NO_AVI_GamePlatform(game);
+			}
+			else
+			{
+				return new SDL2_GamePlatform(game);
+			}
 		}
 
 		#endregion

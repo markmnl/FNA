@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -40,6 +40,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Compile Include="src\Content\ContentReaders\Texture3DReader.cs" />
+    <Compile Include="src\Graphics\FakeInternalGraphicsDevice.cs" />
     <Compile Include="src\Graphics\IRenderTarget.cs" />
     <Compile Include="src\Graphics\RenderTargetCube.cs" />
     <Compile Include="src\Graphics\ResourceCreatedEventArgs.cs" />
@@ -69,6 +70,8 @@
     <Compile Include="src\IUpdateable.cs" />
     <Compile Include="src\MathHelper.cs" />
     <Compile Include="src\Matrix.cs" />
+    <Compile Include="src\NO_AVI\NO_AVI_GamePlatform.cs" />
+    <Compile Include="src\NO_AVI\NO_AVI_GameWindow.cs" />
     <Compile Include="src\Plane.cs" />
     <Compile Include="src\PlaneIntersectionType.cs" />
     <Compile Include="src\PlayerIndex.cs" />
@@ -389,6 +392,7 @@
       <LogicalName>Microsoft.Xna.Framework.Graphics.Effect.Resources.SpriteEffect.ogl.mgfxo</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>

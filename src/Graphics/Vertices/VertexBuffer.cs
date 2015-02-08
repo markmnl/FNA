@@ -107,12 +107,20 @@ namespace Microsoft.Xna.Framework.Graphics
 
 			Threading.ForceToMainThread(() =>
 			{
-				Handle = new OpenGLDevice.OpenGLVertexBuffer(
-					GraphicsDevice,
-					dynamic,
-					VertexCount,
-					VertexDeclaration.VertexStride
-				);
+				if (Game.IsNoAVI)
+				{
+					Handle = new FakeInternalGraphicsDevice.FakeOpenGLVertexBuffer();
+				}
+				else
+				{
+					Handle = new OpenGLDevice.OpenGLVertexBuffer(
+						GraphicsDevice,
+						dynamic,
+						VertexCount,
+						VertexDeclaration.VertexStride
+					);
+				}
+
 			});
 		}
 

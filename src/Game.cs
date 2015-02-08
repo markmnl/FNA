@@ -223,6 +223,8 @@ namespace Microsoft.Xna.Framework
 			}
 		}
 
+		internal static bool IsNoAVI { get { return _isNoAVI; } }
+
 		#endregion
 
 		#region Internal Fields
@@ -273,20 +275,23 @@ namespace Microsoft.Xna.Framework
 
 		private static Game _instance = null;
 
+		private static bool _isNoAVI;
+
 		#endregion
 
 		#region Public Constructors
 
-		public Game()
+		public Game(bool noAVI = false)
 		{
 			_instance = this;
+			_isNoAVI = noAVI;
 
 			LaunchParameters = new LaunchParameters();
 			_services = new GameServiceContainer();
 			_components = new GameComponentCollection();
 			_content = new ContentManager(_services);
 
-			Platform = GamePlatform.Create(this);
+			Platform = GamePlatform.Create(this, noAVI);
 			Platform.Activated += OnActivated;
 			Platform.Deactivated += OnDeactivated;
 			_services.AddService(typeof(GamePlatform), Platform);

@@ -384,6 +384,9 @@ namespace Microsoft.Xna.Framework.Audio
 			bool isADPCM,
 			uint formatParameter
 		) {
+			if (Game.IsNoAVI)
+				return;
+
 			if (OpenALDevice.Instance == null)
 			{
 				throw new NoAudioHardwareException();

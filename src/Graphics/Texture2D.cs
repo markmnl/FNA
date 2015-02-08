@@ -86,6 +86,9 @@ namespace Microsoft.Xna.Framework.Graphics
 					mipMap
 				);
 
+				if (Game.IsNoAVI)
+					return;
+				
 				if (	Format == SurfaceFormat.Dxt1 ||
 					Format == SurfaceFormat.Dxt3 ||
 					Format == SurfaceFormat.Dxt5	)
@@ -182,6 +185,9 @@ namespace Microsoft.Xna.Framework.Graphics
 				w = Math.Max(Width >> level, 1);
 				h = Math.Max(Height >> level, 1);
 			}
+
+			if (Game.IsNoAVI)
+				return;
 
 			Threading.ForceToMainThread(() =>
 			{

@@ -390,12 +390,14 @@ namespace Microsoft.Xna.Framework
 			PreferredBackBufferFormat = gdi.PresentationParameters.BackBufferFormat;
 			PreferredDepthStencilFormat = gdi.PresentationParameters.DepthStencilFormat;
 
+			
 			// Create the GraphicsDevice, apply the initial settings.
 			graphicsDevice = new GraphicsDevice(
 				gdi.Adapter,
 				gdi.GraphicsProfile,
 				gdi.PresentationParameters
 			);
+
 			ApplyChanges();
 
 			/* Set the new display orientation on the touch panel.

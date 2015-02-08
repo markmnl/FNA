@@ -719,6 +719,9 @@ namespace Microsoft.Xna.Framework.Graphics
 			float depth,
 			byte effects
 		) {
+			if (Game.IsNoAVI)
+				return;
+
 			if (numSprites >= MAX_SPRITES)
 			{
 				// Oh crap, we're out of space, flush!
@@ -765,6 +768,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		private void RenderBatch(int offset, int batchSize)
 		{
+			if (Game.IsNoAVI)
+				return;
+
 			GraphicsDevice.Textures[0] = spriteData[offset].texture;
 			for (int i = 0; i < batchSize; i += 1)
 			{
@@ -910,6 +916,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		private void FlushBatch()
 		{
+			if (Game.IsNoAVI)
+				return;
+
 			int offset = 0;
 			Texture2D curTexture = null;
 
@@ -969,6 +978,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		private void PrepRenderState()
 		{
+			if (Game.IsNoAVI)
+				return;
+
 			GraphicsDevice.BlendState = blendState;
 			GraphicsDevice.SamplerStates[0] = samplerState;
 			GraphicsDevice.DepthStencilState = depthStencilState;

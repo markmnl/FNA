@@ -390,8 +390,17 @@ namespace Microsoft.Xna.Framework.Graphics
 			PresentationParameters = presentationParameters;
 			GraphicsProfile = graphicsProfile;
 
-			// Set up the OpenGL Device. Loads entry points.
-			GLDevice = new OpenGLDevice(PresentationParameters);
+			if (Game.IsNoAVI)
+			{
+ 				// Create a fake internal device that just has stubs
+				GLDevice = new FakeInternalGraphicsDevice(PresentationParameters);
+			}
+			else
+			{
+				// Set up the OpenGL Device. Loads entry points.
+				GLDevice = new OpenGLDevice(PresentationParameters);
+			}
+			
 
 			// Force set the default render states.
 			BlendState = BlendState.Opaque;

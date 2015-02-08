@@ -86,6 +86,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			public int MaxMipmapLevel;
 			public float LODBias;
 
+			internal OpenGLTexture() { }
+
 			public OpenGLTexture(
 				uint handle,
 				Type target,
@@ -107,11 +109,6 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 
 			// We can't set a SamplerState Texture to null, so use this.
-			private OpenGLTexture()
-			{
-				Handle = 0;
-				Target = GLenum.GL_TEXTURE_2D; // FIXME: Assumption! -flibit
-			}
 			public static readonly OpenGLTexture NullTexture = new OpenGLTexture();
 		}
 
@@ -139,6 +136,8 @@ namespace Microsoft.Xna.Framework.Graphics
 				private set;
 			}
 
+			internal OpenGLVertexBuffer() { }
+
 			public OpenGLVertexBuffer(
 				GraphicsDevice graphicsDevice,
 				bool dynamic,
@@ -160,10 +159,6 @@ namespace Microsoft.Xna.Framework.Graphics
 				);
 			}
 
-			private OpenGLVertexBuffer()
-			{
-				Handle = 0;
-			}
 			public static readonly OpenGLVertexBuffer NullBuffer = new OpenGLVertexBuffer();
 		}
 
@@ -191,6 +186,8 @@ namespace Microsoft.Xna.Framework.Graphics
 				private set;
 			}
 
+			internal OpenGLIndexBuffer() {}
+
 			public OpenGLIndexBuffer(
 				GraphicsDevice graphicsDevice,
 				bool dynamic,
@@ -212,10 +209,6 @@ namespace Microsoft.Xna.Framework.Graphics
 				);
 			}
 
-			private OpenGLIndexBuffer()
-			{
-				Handle = 0;
-			}
 			public static readonly OpenGLIndexBuffer NullBuffer = new OpenGLIndexBuffer();
 		}
 
@@ -266,7 +259,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		private ColorWriteChannels colorWriteEnable3 = ColorWriteChannels.All;
 
 		#endregion
-
+		 
 		#region Depth State Variables
 
 		internal bool zEnable = false;
@@ -448,10 +441,10 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region Faux-Backbuffer Variable
 
-		public FauxBackbuffer Backbuffer
+		public virtual FauxBackbuffer Backbuffer
 		{
 			get;
-			private set;
+			protected set;
 		}
 
 		#endregion
@@ -491,6 +484,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		#endregion
 
 		#region Public Constructor
+
+		public OpenGLDevice()
+		{ }
 
 		public OpenGLDevice(
 			PresentationParameters presentationParameters
@@ -591,7 +587,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region Dispose Method
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			glDeleteFramebuffers(1, ref targetFramebuffer);
 			targetFramebuffer = 0;
@@ -608,7 +604,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region Window SwapBuffers Method
 
-		public void SwapBuffers(IntPtr overrideWindowHandle)
+		public virtual void SwapBuffers(IntPtr overrideWindowHandle)
 		{
 #if !DISABLE_FAUXBACKBUFFER
 			int windowWidth, windowHeight;
@@ -651,7 +647,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region String Marker Method
 
-		public void SetStringMarker(string text)
+		public virtual void SetStringMarker(string text)
 		{
 #if DEBUG
 			byte[] chars = System.Text.Encoding.ASCII.GetBytes(text);
@@ -663,7 +659,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region State Management Methods
 
-		public void SetViewport(Viewport vp, bool renderTargetBound)
+		public virtual void SetViewport(Viewport vp, bool renderTargetBound)
 		{
 			// Flip viewport when target is not bound
 			if (!renderTargetBound)
@@ -690,7 +686,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void SetScissorRect(
+		public virtual void SetScissorRect(
 			Rectangle scissorRect,
 			bool renderTargetBound
 		) {
@@ -712,7 +708,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void SetBlendState(BlendState blendState)
+		public virtual void SetBlendState(BlendState blendState)
 		{
 			bool newEnable = (
 				!(	blendState.ColorSourceBlend == Blend.One &&
@@ -822,7 +818,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void SetDepthStencilState(DepthStencilState depthStencilState)
+		public virtual void SetDepthStencilState(DepthStencilState depthStencilState)
 		{
 			if (depthStencilState.DepthBufferEnable != zEnable)
 			{
@@ -927,7 +923,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void ApplyRasterizerState(
+		public virtual void ApplyRasterizerState(
 			RasterizerState rasterizerState,
 			bool renderTargetBound
 		) {
@@ -1005,7 +1001,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void VerifySampler(int index, Texture texture, SamplerState sampler)
+		public virtual void VerifySampler(int index, Texture texture, SamplerState sampler)
 		{
 			if (texture == null)
 			{
@@ -1142,7 +1138,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region Flush Vertex Attributes Method
 
-		public void FlushGLVertexAttributes()
+		public virtual void FlushGLVertexAttributes()
 		{
 			for (int i = 0; i < Attributes.Length; i += 1)
 			{
@@ -1173,7 +1169,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glVertexAttribPointer Method
 
-		public void VertexAttribPointer(
+		public virtual void VertexAttribPointer(
 			int location,
 			int size,
 			VertexElementFormat type,
@@ -1209,7 +1205,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glBindBuffer Methods
 
-		public void BindVertexBuffer(OpenGLVertexBuffer buffer)
+		public virtual void BindVertexBuffer(OpenGLVertexBuffer buffer)
 		{
 			if (buffer.Handle != currentVertexBuffer)
 			{
@@ -1218,7 +1214,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void BindIndexBuffer(OpenGLIndexBuffer buffer)
+		public virtual void BindIndexBuffer(OpenGLIndexBuffer buffer)
 		{
 			if (buffer.Handle != currentIndexBuffer)
 			{
@@ -1231,7 +1227,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glSetBufferData Methods
 
-		public void SetVertexBufferData<T>(
+		public virtual void SetVertexBufferData<T>(
 			OpenGLVertexBuffer handle,
 			int elementSizeInBytes,
 			int offsetInBytes,
@@ -1264,7 +1260,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			dataHandle.Free();
 		}
 
-		public void SetIndexBufferData<T>(
+		public virtual void SetIndexBufferData<T>(
 			OpenGLIndexBuffer handle,
 			int offsetInBytes,
 			T[] data,
@@ -1301,7 +1297,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glGetBufferData Methods
 
-		public void GetVertexBufferData<T>(
+		public virtual void GetVertexBufferData<T>(
 			OpenGLVertexBuffer handle,
 			int offsetInBytes,
 			T[] data,
@@ -1357,7 +1353,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			glUnmapBuffer(GLenum.GL_ARRAY_BUFFER);
 		}
 
-		public void GetIndexBufferData<T>(
+		public virtual void GetIndexBufferData<T>(
 			OpenGLIndexBuffer handle,
 			int offsetInBytes,
 			T[] data,
@@ -1394,7 +1390,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glDeleteBuffers Methods
 
-		public void DeleteVertexBuffer(OpenGLVertexBuffer buffer)
+		public virtual void DeleteVertexBuffer(OpenGLVertexBuffer buffer)
 		{
 			if (buffer.Handle == currentVertexBuffer)
 			{
@@ -1405,7 +1401,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			glDeleteBuffers(1, ref handle);
 		}
 
-		public void DeleteIndexBuffer(OpenGLIndexBuffer buffer)
+		public virtual void DeleteIndexBuffer(OpenGLIndexBuffer buffer)
 		{
 			if (buffer.Handle == currentIndexBuffer)
 			{
@@ -1420,7 +1416,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glCreateTexture Method
 
-		public OpenGLTexture CreateTexture(Type target, SurfaceFormat format, bool hasMipmaps)
+		public virtual OpenGLTexture CreateTexture(Type target, SurfaceFormat format, bool hasMipmaps)
 		{
 			uint handle;
 			glGenTextures(1, out handle);
@@ -1478,7 +1474,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glBindTexture Method
 
-		public void BindTexture(OpenGLTexture texture)
+		public virtual void BindTexture(OpenGLTexture texture)
 		{
 			if (texture.Target != Textures[0].Target)
 			{
@@ -1498,7 +1494,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glDeleteTexture Method
 
-		public void DeleteTexture(OpenGLTexture texture)
+		public virtual void DeleteTexture(OpenGLTexture texture)
 		{
 			for (int i = 0; i < currentAttachments.Length; i += 1)
 			{
@@ -1598,7 +1594,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glGenerateMipmap Method
 
-		public void GenerateTargetMipmaps(OpenGLTexture target)
+		public virtual void GenerateTargetMipmaps(OpenGLTexture target)
 		{
 			OpenGLTexture prevTex = Textures[0];
 			BindTexture(target);
@@ -1610,7 +1606,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region Framebuffer Methods
 
-		public void BindFramebuffer(uint handle)
+		public virtual void BindFramebuffer(uint handle)
 		{
 			if (	currentReadFramebuffer != handle &&
 				currentDrawFramebuffer != handle	)
@@ -1632,7 +1628,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void BindReadFramebuffer(uint handle)
+		public virtual void BindReadFramebuffer(uint handle)
 		{
 			if (handle == currentReadFramebuffer)
 			{
@@ -1647,7 +1643,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			currentReadFramebuffer = handle;
 		}
 
-		public void BindDrawFramebuffer(uint handle)
+		public virtual void BindDrawFramebuffer(uint handle)
 		{
 			if (handle == currentDrawFramebuffer)
 			{
@@ -1687,7 +1683,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			return handle;
 		}
 
-		public void DeleteRenderbuffer(uint renderbuffer)
+		public virtual void DeleteRenderbuffer(uint renderbuffer)
 		{
 			if (renderbuffer == currentRenderbuffer)
 			{
@@ -1717,7 +1713,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glClear Method
 
-		public void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
+		public virtual void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
 		{
 			// Move some stuff around so the glClear works...
 			if (scissorTestEnable)
@@ -1791,7 +1787,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region SetRenderTargets Method
 
-		public void SetRenderTargets(
+		public virtual void SetRenderTargets(
 			uint[] attachments,
 			GLenum[] textureTargets,
 			uint renderbuffer,
@@ -2084,6 +2080,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			private OpenGLDevice glDevice;
 #endif
 
+			internal FauxBackbuffer() { }
+
 			public FauxBackbuffer(
 				OpenGLDevice device,
 				int width,
@@ -2164,7 +2162,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
 			}
 
-			public void Dispose()
+			public virtual void Dispose()
 			{
 #if !DISABLE_FAUXBACKBUFFER
 				uint handle = Handle;
@@ -2179,7 +2177,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
 			}
 
-			public void ResetFramebuffer(
+			public virtual void ResetFramebuffer(
 				GraphicsDevice graphicsDevice,
 				int width,
 				int height,

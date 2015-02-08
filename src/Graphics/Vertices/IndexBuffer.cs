@@ -116,12 +116,19 @@ namespace Microsoft.Xna.Framework.Graphics
 
 			Threading.ForceToMainThread(() =>
 			{
-				Handle = new OpenGLDevice.OpenGLIndexBuffer(
-					GraphicsDevice,
-					dynamic,
-					IndexCount,
-					IndexElementSize
-				);
+				if (Game.IsNoAVI)
+				{
+					Handle = new FakeInternalGraphicsDevice.FakeOpenGLIndexBuffer();
+				}
+				else
+				{
+					Handle = new OpenGLDevice.OpenGLIndexBuffer(
+						GraphicsDevice,
+						dynamic,
+						IndexCount,
+						IndexElementSize
+					);
+				}
 			});
 		}
 
