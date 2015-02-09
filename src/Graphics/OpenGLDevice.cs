@@ -86,7 +86,11 @@ namespace Microsoft.Xna.Framework.Graphics
 			public int MaxMipmapLevel;
 			public float LODBias;
 
-			internal OpenGLTexture() { }
+			internal OpenGLTexture() 
+			{
+				Handle = 0;
+				Target = GLenum.GL_TEXTURE_2D; // FIXME: Assumption! -flibit
+			}
 
 			public OpenGLTexture(
 				uint handle,
