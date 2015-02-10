@@ -540,6 +540,9 @@ namespace Microsoft.Xna.Framework.Graphics
 				throw new ArgumentNullException("presentationParameters");
 			}
 
+			if (Game.IsNoAVI)
+				return;
+
 			// We're about to reset, let the application know.
 			if (DeviceResetting != null)
 			{
@@ -939,6 +942,9 @@ namespace Microsoft.Xna.Framework.Graphics
 			int startIndex,
 			int primitiveCount
 		) {
+			if (Game.IsNoAVI)
+				return;
+
 			// Flush the GL state before moving on!
 			ApplyState();
 
@@ -1042,6 +1048,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void DrawPrimitives(PrimitiveType primitiveType, int vertexStart, int primitiveCount)
 		{
+			if (Game.IsNoAVI)
+				return;
+
 			// Flush the GL state before moving on!
 			ApplyState();
 
@@ -1235,6 +1244,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			int primitiveCount,
 			VertexDeclaration vertexDeclaration
 		) where T : struct {
+
+			if (Game.IsNoAVI)
+				return;
+
 			// Flush the GL state before moving on!
 			ApplyState();
 

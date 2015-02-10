@@ -280,6 +280,14 @@ namespace Microsoft.Xna.Framework.Graphics
 				GraphicsDeviceManager.DefaultBackBufferHeight,
 				presentationParameters.DepthStencilFormat
 			);
+
+			int numSamplers = 32;
+			Textures = new OpenGLTexture[numSamplers];
+			for (int i = 0; i < numSamplers; i += 1)
+			{
+				Textures[i] = OpenGLTexture.NullTexture;
+			}
+			MaxTextureSlots = numSamplers;
 		}
 
 		#endregion

@@ -74,6 +74,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
         public void Apply()
         {
+			if (Game.IsNoAVI)
+				return;
+
             // Set/get the correct shader handle/cleanups.
             //
             // TODO: This "reapply" if the shader index changes

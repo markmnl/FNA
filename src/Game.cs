@@ -174,6 +174,8 @@ namespace Microsoft.Xna.Framework
 			}
 		}
 
+		public static bool IsNoAVI { get { return _isNoAVI; } }
+
 		#endregion
 
 		#region Internal Properties
@@ -222,8 +224,6 @@ namespace Microsoft.Xna.Framework
 				return Game._instance;
 			}
 		}
-
-		internal static bool IsNoAVI { get { return _isNoAVI; } }
 
 		#endregion
 

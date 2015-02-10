@@ -136,6 +136,11 @@ namespace Microsoft.Xna.Framework.Graphics
 				return;
 			}
 
+			if (Game.IsNoAVI)
+			{
+				return;
+			}
+
 			Threading.ForceToMainThread(() =>
 			{
 				glDepthStencilBuffer = graphicsDevice.GLDevice.GenRenderbuffer(

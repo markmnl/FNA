@@ -275,10 +275,17 @@ namespace Microsoft.Xna.Framework.Graphics
 			int vertexStride,
 			SetDataOptions options
 		) where T : struct {
+			
 			if (data == null)
 			{
 				throw new ArgumentNullException("data");
 			}
+
+			if (Game.IsNoAVI)
+			{
+				return;
+			}
+
 			if ((startIndex + elementCount > data.Length) || elementCount <= 0)
 			{
 				throw new InvalidOperationException(
