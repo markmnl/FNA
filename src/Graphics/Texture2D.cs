@@ -455,7 +455,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			byte[] pngOut = new byte[
 				(width * height * 4) +
 				pngHeaderSize +
-				pngFooterSize
+				pngFooterSize +
+				256 // FIXME: Arbitrary zlib data padding for low-res images
 			]; // Max image size
 			IntPtr dst = SDL.SDL_RWFromMem(pngOut, pngOut.Length);
 			SDL_image.IMG_SavePNG_RW(surface, dst, 1);
