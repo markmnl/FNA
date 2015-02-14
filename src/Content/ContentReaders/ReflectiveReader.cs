@@ -10,6 +10,7 @@
 #region Using Statements
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 #endregion
 
@@ -22,6 +23,18 @@ namespace Microsoft.Xna.Framework.Content
 		delegate void ReadElement(ContentReader input, object parent);
 
 		private List<ReadElement> readers;
+
+		#endregion
+
+		#region Public Properties
+
+		public override bool CanDeserializeIntoExistingObject
+		{
+			get
+			{
+				return TargetType.IsClass;
+			}
+		}
 
 		#endregion
 
@@ -146,19 +159,9 @@ namespace Microsoft.Xna.Framework.Content
 				}
 
 				// Skip over indexer properties
-				if (property.Name == "Item")
+				if (property.GetIndexParameters().Any())
 				{
-					MethodInfo getMethod = property.GetGetMethod();
-					MethodInfo setMethod = property.GetSetMethod();
-
-					if (	(getMethod != null && getMethod.GetParameters().Length > 0) ||
-						(setMethod != null && setMethod.GetParameters().Length > 0)	)	
-					{
-						/* This is presumably a property like this[indexer] and this
-						 * should not get involved in the object deserialization
-						 */
-						return null;
-					}
+					return null;
 				}
 			}
 
@@ -188,19 +191,18 @@ namespace Microsoft.Xna.Framework.Content
 					{
 						return null;
 					}
-					MethodInfo setMethod = property.GetSetMethod();
-					if (setMethod == null || !setMethod.IsPublic)
-					{
-						return null;
-					}
 
-					/* If the read-only property has a type reader then
-					 * it is safe to deserialize into the existing type.
+					/* If the read-only property has a type reader,
+					 * and CanDeserializeIntoExistingObject is true,
+					 * then it is safe to deserialize into the existing object.
 					 */
-					if (	!property.CanWrite &&
-						manager.GetTypeReader(property.PropertyType) == null	)
+					if (!property.CanWrite)
 					{
-						return null;
+						ContentTypeReader typeReader = manager.GetTypeReader(property.PropertyType);
+						if (typeReader == null || !typeReader.CanDeserializeIntoExistingObject)
+						{
+							return null;
+						}
 					}
 				}
 				else
