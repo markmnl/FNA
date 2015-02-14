@@ -231,7 +231,7 @@ namespace Microsoft.Xna.Framework.Audio
 					// Instance Behavior Flags
 					byte instanceFlags = reader.ReadByte();
 					int fadeType = instanceFlags & 0x07;
-					int maxBehavior = reader.ReadByte() >> 3;
+					int maxBehavior = instanceFlags >> 3;
 
 					// Unknown value
 					reader.ReadUInt16();
