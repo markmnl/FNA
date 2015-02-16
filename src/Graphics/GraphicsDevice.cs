@@ -228,6 +228,14 @@ namespace Microsoft.Xna.Framework.Graphics
 		private static List<Action> disposeActions = new List<Action>();
 		private static object disposeActionsLock = new object();
 
+		/* Use WeakReference for the global resources list as we do not
+		 * know when a resource may be disposed and collected. We do not
+		 * want to prevent a resource from being collected by holding a
+		 * strong reference to it in this list.
+		 */
+		private readonly List<WeakReference> resources = new List<WeakReference>();
+		private readonly object resourcesLock = new object();
+
 		#endregion
 
 		#region Private Clear Variables
@@ -362,7 +370,18 @@ namespace Microsoft.Xna.Framework.Graphics
 					/* Dispose of all remaining graphics resources before
 					 * disposing of the GraphicsDevice.
 					 */
-					GraphicsResource.DisposeAll();
+					lock (resourcesLock)
+					{
+						foreach (WeakReference resource in resources.ToArray())
+						{
+							object target = resource.Target;
+							if (target != null)
+							{
+								(target as IDisposable).Dispose();
+							}
+						}
+						resources.Clear();
+					}
 
 					// Dispose of the GL Device/Context
 					GLDevice.Dispose();
@@ -374,7 +393,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#endregion
 
-		#region Internal Resource Disposal Method
+		#region Internal Resource Management Methods
 
 		/// <summary>
 		/// Adds a dispose action to the list of pending dispose actions. These are executed
@@ -398,6 +417,22 @@ namespace Microsoft.Xna.Framework.Graphics
 				{
 					disposeActions.Add(disposeAction);
 				}
+			}
+		}
+
+		internal void AddResourceReference(WeakReference resourceReference)
+		{
+			lock (resourcesLock)
+			{
+				resources.Add(resourceReference);
+			}
+		}
+
+		internal void RemoveResourceReference(WeakReference resourceReference)
+		{
+			lock (resourcesLock)
+			{
+				resources.Remove(resourceReference);
 			}
 		}
 
@@ -450,6 +485,23 @@ namespace Microsoft.Xna.Framework.Graphics
 			{
 				DeviceResetting(this, EventArgs.Empty);
 			}
+
+			/* FIXME: Why are we not doing this...? -flibit
+			lock (resourcesLock)
+			{
+				foreach (WeakReference resource in resources)
+				{
+					object target = resource.Target;
+					if (target != null)
+					{
+						(target as GraphicsResource).GraphicsDeviceResetting();
+					}
+				}
+
+				// Remove references to resources that have been garbage collected.
+				resources.RemoveAll(wr => !wr.IsAlive);
+			}
+			*/
 
 			// Set the new PresentationParameters first.
 			PresentationParameters = presentationParameters;
