@@ -327,10 +327,10 @@ namespace Microsoft.Xna.Framework.Media
 			// If we're at the end of the file, stop!
 			if (totalBuf.Count == 0)
 			{
-				soundStream.BufferNeeded -= QueueBuffer;
 				if (sender != null)
 				{
 					// If sender's null, we didn't even start playing yet?!
+					soundStream.BufferNeeded -= QueueBuffer;
 					MediaPlayer.OnSongFinishedPlaying(null, null);
 				}
 				return;
