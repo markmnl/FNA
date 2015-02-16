@@ -325,7 +325,7 @@ namespace Microsoft.Xna.Framework.Media
 			} while (len > 0 && totalBuf.Count < 16384); // 8192 16-bit samples
 
 			// If we're at the end of the file, stop!
-			if (totalBuf.Count == 0)
+			if (totalBuf.Count == 0 && sender != null)
 			{
 				soundStream.BufferNeeded -= QueueBuffer;
 				OnFinishedPlaying();
