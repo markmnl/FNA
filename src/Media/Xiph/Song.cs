@@ -247,9 +247,9 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal void Play()
 		{
+			QueueBuffer(null, null);
+			QueueBuffer(null, null);
 			soundStream.BufferNeeded += QueueBuffer;
-			QueueBuffer(null, null);
-			QueueBuffer(null, null);
 
 #if NO_STREAM_THREAD
 			soundStream.Play();
