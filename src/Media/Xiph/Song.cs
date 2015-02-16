@@ -325,10 +325,14 @@ namespace Microsoft.Xna.Framework.Media
 			} while (len > 0 && totalBuf.Count < 16384); // 8192 16-bit samples
 
 			// If we're at the end of the file, stop!
-			if (totalBuf.Count == 0 && sender != null)
+			if (totalBuf.Count == 0)
 			{
 				soundStream.BufferNeeded -= QueueBuffer;
-				OnFinishedPlaying();
+				if (sender != null)
+				{
+					// If sender's null, we didn't even start playing yet?!
+					MediaPlayer.OnSongFinishedPlaying(null, null);
+				}
 				return;
 			}
 
@@ -338,11 +342,6 @@ namespace Microsoft.Xna.Framework.Media
 				0,
 				totalBuf.Count
 			);
-		}
-
-		internal void OnFinishedPlaying()
-		{
-			MediaPlayer.OnSongFinishedPlaying(null, null);
 		}
 
 		#endregion
