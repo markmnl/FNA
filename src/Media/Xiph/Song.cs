@@ -166,7 +166,7 @@ namespace Microsoft.Xna.Framework.Media
 		#region Private Variables
 
 		private DynamicSoundEffectInstance soundStream;
-		private byte[] vorbisFile;
+		private IntPtr vorbisFile;
 		private byte[] vorbisBuffer = new byte[4096];
 
 #if !NO_STREAM_THREAD
