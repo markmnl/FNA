@@ -166,7 +166,7 @@ namespace Microsoft.Xna.Framework.Media
 		#region Private Variables
 
 		private DynamicSoundEffectInstance soundStream;
-		private Vorbisfile.OggVorbis_File vorbisFile = new Vorbisfile.OggVorbis_File();
+		private byte[] vorbisFile;
 		private byte[] vorbisBuffer = new byte[4096];
 
 #if !NO_STREAM_THREAD
@@ -182,7 +182,7 @@ namespace Microsoft.Xna.Framework.Media
 		{
 			Vorbisfile.ov_fopen(fileName, out vorbisFile);
 			Vorbisfile.vorbis_info fileInfo = Vorbisfile.ov_info(
-				ref vorbisFile,
+				vorbisFile,
 				0
 			);
 
@@ -191,12 +191,12 @@ namespace Microsoft.Xna.Framework.Media
 			TrackNumber = 0;
 
 			Duration = TimeSpan.FromSeconds(
-				Vorbisfile.ov_time_total(ref vorbisFile, 0)
+				Vorbisfile.ov_time_total(vorbisFile, 0)
 			);
 			Position = TimeSpan.Zero;
 
 			soundStream = new DynamicSoundEffectInstance(
-				fileInfo.rate,
+				(int) fileInfo.rate,
 				(AudioChannels) fileInfo.channels
 			);
 
@@ -302,8 +302,8 @@ namespace Microsoft.Xna.Framework.Media
 			long len = 0;
 			do
 			{
-				len = Vorbisfile.ov_read(
-					ref vorbisFile,
+				len = (long) Vorbisfile.ov_read(
+					vorbisFile,
 					vorbisBuffer,
 					vorbisBuffer.Length,
 					0,
