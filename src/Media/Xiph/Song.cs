@@ -353,14 +353,10 @@ namespace Microsoft.Xna.Framework.Media
 #if !NO_STREAM_THREAD
 		private void SongThread()
 		{
-			while (!exitThread)
+			while (!exitThread && soundStream.Update())
 			{
-				exitThread = !soundStream.Update();
-				if (!exitThread)
-				{
-					// Arbitrarily 1 frame in a 15Hz game -flibit
-					Thread.Sleep(67);
-				}
+				// Arbitrarily 1 frame in a 15Hz game -flibit
+				Thread.Sleep(67);
 			}
 			if (PlayCount > 0)
 			{
