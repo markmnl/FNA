@@ -151,13 +151,14 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal float Volume
 		{
-			get
-			{
-				return soundStream.Volume;
-			}
 			set
 			{
-				soundStream.Volume = value;
+				/* FIXME: Works around MasterVolume only temporarily!
+				 * Figure out how MasterVolume actually applies to instances,
+				 * then deal with this accordingly.
+				 * -flibit
+				 */
+				soundStream.Volume = value * (1.0f / SoundEffect.MasterVolume);
 			}
 		}
 

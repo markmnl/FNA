@@ -553,7 +553,12 @@ namespace Microsoft.Xna.Framework.Media
 			}
 			else
 			{
-				audioStream.Volume = Volume;
+				/* FIXME: Works around MasterVolume only temporarily!
+				 * Figure out how MasterVolume actually applies to instances,
+				 * then deal with this accordingly.
+				 * -flibit
+				 */
+				audioStream.Volume = Volume * (1.0f / SoundEffect.MasterVolume);
 			}
 		}
 
