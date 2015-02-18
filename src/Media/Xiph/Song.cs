@@ -288,6 +288,7 @@ namespace Microsoft.Xna.Framework.Media
 
 			soundStream.Stop();
 			soundStream.BufferNeeded -= QueueBuffer;
+			Vorbisfile.ov_time_seek(vorbisFile, 0.0);
 			PlayCount = 0;
 		}
 
@@ -332,7 +333,6 @@ namespace Microsoft.Xna.Framework.Media
 				{
 					// If sender's null, we didn't even start playing yet?!
 					soundStream.BufferNeeded -= QueueBuffer;
-					MediaPlayer.OnSongFinishedPlaying(null, null);
 				}
 				return;
 			}
@@ -361,6 +361,7 @@ namespace Microsoft.Xna.Framework.Media
 					Thread.Sleep(67);
 				}
 			}
+			MediaPlayer.OnSongFinishedPlaying(null, null);
 		}
 #endif
 
