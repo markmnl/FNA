@@ -278,6 +278,8 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal void Stop()
 		{
+			PlayCount = 0;
+
 #if !NO_STREAM_THREAD
 			exitThread = true;
 			if (songThread != null && Thread.CurrentThread != songThread)
@@ -289,7 +291,6 @@ namespace Microsoft.Xna.Framework.Media
 			soundStream.Stop();
 			soundStream.BufferNeeded -= QueueBuffer;
 			Vorbisfile.ov_time_seek(vorbisFile, 0.0);
-			PlayCount = 0;
 		}
 
 		#endregion
