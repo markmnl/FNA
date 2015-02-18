@@ -352,7 +352,12 @@ namespace Microsoft.Xna.Framework.Audio
 
 		public void Resume()
 		{
-			if (INTERNAL_alSource != 0 && State == SoundState.Paused)
+			if (INTERNAL_alSource == 0)
+			{
+				// XNA4 just plays if we've not started yet.
+				Play();
+			}
+			else if (State == SoundState.Paused)
 			{
 				AL10.alSourcePlay(INTERNAL_alSource);
 			}
