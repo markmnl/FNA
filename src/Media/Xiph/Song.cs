@@ -361,7 +361,14 @@ namespace Microsoft.Xna.Framework.Media
 					Thread.Sleep(67);
 				}
 			}
-			MediaPlayer.OnSongFinishedPlaying(null, null);
+			if (PlayCount > 0)
+			{
+				/* If PlayCount is 0 at this point, then we were stopped by the
+				 * calling application, and this event shouldn't happen.
+				 * -flibit
+				 */
+				MediaPlayer.OnSongFinishedPlaying(null, null);
+			}
 		}
 #endif
 
