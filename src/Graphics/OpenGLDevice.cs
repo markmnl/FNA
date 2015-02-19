@@ -377,6 +377,14 @@ namespace Microsoft.Xna.Framework.Graphics
 		private uint currentVertexBuffer = 0;
 		private uint currentIndexBuffer = 0;
 
+		// ld, or LastDrawn, effect/vertex attributes
+		private int ldBaseVertex = -1;
+		private VertexDeclaration ldVertexDeclaration = null;
+		private IntPtr ldPointer = IntPtr.Zero;
+		private IntPtr ldEffect = IntPtr.Zero;
+		private IntPtr ldTechnique = IntPtr.Zero;
+		private uint ldPass = 0;
+
 		#endregion
 
 		#region Render Target Cache Variables
@@ -477,6 +485,8 @@ namespace Microsoft.Xna.Framework.Graphics
 		private uint currentPass = 0;
 
 		private int flipViewport;
+
+		private bool effectApplied = false;
 
 		private static IntPtr glGetProcAddress(string name, IntPtr d)
 		{
@@ -1209,6 +1219,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			uint pass,
 			ref MojoShader.MOJOSHADER_effectStateChanges stateChanges
 		) {
+			effectApplied = true;
 			flipViewport = (currentDrawFramebuffer == targetFramebuffer) ? -1 : 1;
 			if (effect.GLEffectData == currentEffect)
 			{
@@ -1251,44 +1262,61 @@ namespace Microsoft.Xna.Framework.Graphics
 		public void ApplyVertexAttributes(
 			VertexBufferBinding[] bindings,
 			int numBindings,
+			bool bindingsUpdated,
 			int baseVertex
 		) {
-			/* There's this weird case where you can have multiple vertbuffers,
-			 * but they will have overlapping attributes. It seems like the
-			 * first buffer gets priority, so start with the last one so the
-			 * first buffer's attributes are what's bound at the end.
-			 * -flibit
-			 */
-			for (int i = numBindings - 1; i >= 0; i -= 1)
+			if (	bindingsUpdated ||
+				baseVertex != ldBaseVertex ||
+				currentEffect != ldEffect ||
+				currentTechnique != ldTechnique ||
+				currentPass != ldPass ||
+				effectApplied	)
 			{
-				BindVertexBuffer(bindings[i].VertexBuffer.Handle);
-				VertexDeclaration vertexDeclaration = bindings[i].VertexBuffer.VertexDeclaration;
-				IntPtr basePtr = (IntPtr) (
-					vertexDeclaration.VertexStride *
-					(bindings[i].VertexOffset + baseVertex)
-				);
-				foreach (VertexElement element in vertexDeclaration.elements)
+				/* There's this weird case where you can have multiple vertbuffers,
+				 * but they will have overlapping attributes. It seems like the
+				 * first buffer gets priority, so start with the last one so the
+				 * first buffer's attributes are what's bound at the end.
+				 * -flibit
+				 */
+				for (int i = numBindings - 1; i >= 0; i -= 1)
 				{
-					// FIXME: Attribute state caching? -flibit
-					MojoShader.MOJOSHADER_glSetVertexAttribute(
-						XNAToGL.VertexAttribUsage[element.VertexElementUsage],
-						element.UsageIndex,
-						XNAToGL.VertexAttribSize[element.VertexElementFormat],
-						XNAToGL.VertexAttribType[element.VertexElementFormat],
-						XNAToGL.VertexAttribNormalized(element),
-						(uint) vertexDeclaration.VertexStride,
-						basePtr + element.Offset
+					BindVertexBuffer(bindings[i].VertexBuffer.Handle);
+					VertexDeclaration vertexDeclaration = bindings[i].VertexBuffer.VertexDeclaration;
+					IntPtr basePtr = (IntPtr) (
+						vertexDeclaration.VertexStride *
+						(bindings[i].VertexOffset + baseVertex)
 					);
-					if (SupportsHardwareInstancing)
+					foreach (VertexElement element in vertexDeclaration.elements)
 					{
-						MojoShader.MOJOSHADER_glSetVertexAttribDivisor(
+						MojoShader.MOJOSHADER_glSetVertexAttribute(
 							XNAToGL.VertexAttribUsage[element.VertexElementUsage],
 							element.UsageIndex,
-							(uint) bindings[i].InstanceFrequency
+							XNAToGL.VertexAttribSize[element.VertexElementFormat],
+							XNAToGL.VertexAttribType[element.VertexElementFormat],
+							XNAToGL.VertexAttribNormalized(element),
+							(uint) vertexDeclaration.VertexStride,
+							basePtr + element.Offset
 						);
+						if (SupportsHardwareInstancing)
+						{
+							MojoShader.MOJOSHADER_glSetVertexAttribDivisor(
+								XNAToGL.VertexAttribUsage[element.VertexElementUsage],
+								element.UsageIndex,
+								(uint) bindings[i].InstanceFrequency
+							);
+						}
 					}
 				}
+
+				ldBaseVertex = baseVertex;
+				ldEffect = currentEffect;
+				ldTechnique = currentTechnique;
+				ldPass = currentPass;
+				effectApplied = false;
+				ldVertexDeclaration = null;
+				ldPointer = IntPtr.Zero;
 			}
+
 			MojoShader.MOJOSHADER_glProgramReady();
 			if (flipViewport != 0)
 			{
@@ -1304,27 +1332,44 @@ namespace Microsoft.Xna.Framework.Graphics
 		) {
 			BindVertexBuffer(OpenGLVertexBuffer.NullBuffer);
 			IntPtr basePtr = ptr + (vertexDeclaration.VertexStride * vertexOffset);
-			foreach (VertexElement element in vertexDeclaration.elements)
+
+			if (	vertexDeclaration != ldVertexDeclaration ||
+				basePtr != ldPointer ||
+				currentEffect != ldEffect ||
+				currentTechnique != ldTechnique ||
+				currentPass != ldPass ||
+				effectApplied	)
 			{
-				// FIXME: Attribute state caching? -flibit
-				MojoShader.MOJOSHADER_glSetVertexAttribute(
-					XNAToGL.VertexAttribUsage[element.VertexElementUsage],
-					element.UsageIndex,
-					XNAToGL.VertexAttribSize[element.VertexElementFormat],
-					XNAToGL.VertexAttribType[element.VertexElementFormat],
-					XNAToGL.VertexAttribNormalized(element),
-					(uint) vertexDeclaration.VertexStride,
-					basePtr + element.Offset
-				);
-				if (SupportsHardwareInstancing)
+				foreach (VertexElement element in vertexDeclaration.elements)
 				{
-					MojoShader.MOJOSHADER_glSetVertexAttribDivisor(
+					MojoShader.MOJOSHADER_glSetVertexAttribute(
 						XNAToGL.VertexAttribUsage[element.VertexElementUsage],
 						element.UsageIndex,
-						0
+						XNAToGL.VertexAttribSize[element.VertexElementFormat],
+						XNAToGL.VertexAttribType[element.VertexElementFormat],
+						XNAToGL.VertexAttribNormalized(element),
+						(uint) vertexDeclaration.VertexStride,
+						basePtr + element.Offset
 					);
+					if (SupportsHardwareInstancing)
+					{
+						MojoShader.MOJOSHADER_glSetVertexAttribDivisor(
+							XNAToGL.VertexAttribUsage[element.VertexElementUsage],
+							element.UsageIndex,
+							0
+						);
+					}
 				}
+
+				ldVertexDeclaration = vertexDeclaration;
+				ldPointer = ptr;
+				ldEffect = currentEffect;
+				ldTechnique = currentTechnique;
+				ldPass = currentPass;
+				effectApplied = false;
+				ldBaseVertex = -1;
 			}
+
 			MojoShader.MOJOSHADER_glProgramReady();
 			if (flipViewport != 0)
 			{

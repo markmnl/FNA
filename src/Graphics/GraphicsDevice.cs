@@ -266,6 +266,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		// 16, per XNA4 HiDef spec
 		private VertexBufferBinding[] vertexBufferBindings = new VertexBufferBinding[16];
 		private int vertexBufferCount = 0;
+		private bool vertexBuffersUpdated = false;
 
 		#endregion
 
@@ -785,11 +786,16 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
 			if (vertexBuffer == null)
 			{
+				if (vertexBufferCount == 0)
+				{
+					return;
+				}
 				for (int i = 0; i < vertexBufferCount; i += 1)
 				{
 					vertexBufferBindings[i] = VertexBufferBinding.None;
 				}
 				vertexBufferCount = 0;
+				vertexBuffersUpdated = true;
 				return;
 			}
 
@@ -800,11 +806,16 @@ namespace Microsoft.Xna.Framework.Graphics
 					vertexBuffer,
 					vertexOffset
 				);
+				vertexBuffersUpdated = true;
 			}
 
-			for (int i = 1; i < vertexBufferCount; i += 1)
+			if (vertexBufferCount > 1)
 			{
-				vertexBufferBindings[i] = VertexBufferBinding.None;
+				for (int i = 1; i < vertexBufferCount; i += 1)
+				{
+					vertexBufferBindings[i] = VertexBufferBinding.None;
+				}
+				vertexBuffersUpdated = true;
 			}
 
 			vertexBufferCount = 1;
@@ -814,11 +825,16 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
 			if (vertexBuffers == null)
 			{
+				if (vertexBufferCount == 0)
+				{
+					return;
+				}
 				for (int j = 0; j < vertexBufferCount; j += 1)
 				{
 					vertexBufferBindings[j] = VertexBufferBinding.None;
 				}
 				vertexBufferCount = 0;
+				vertexBuffersUpdated = true;
 				return;
 			}
 
@@ -841,13 +857,18 @@ namespace Microsoft.Xna.Framework.Graphics
 					vertexBufferBindings[i].InstanceFrequency != vertexBuffers[i].InstanceFrequency	)
 				{
 					vertexBufferBindings[i] = vertexBuffers[i];
+					vertexBuffersUpdated = true;
 				}
 				i += 1;
 			}
-			while (i < vertexBufferCount)
+			if (vertexBuffers.Length < vertexBufferCount)
 			{
-				vertexBufferBindings[i] = VertexBufferBinding.None;
-				i += 1;
+				while (i < vertexBufferCount)
+				{
+					vertexBufferBindings[i] = VertexBufferBinding.None;
+					i += 1;
+				}
+				vertexBuffersUpdated = true;
 			}
 
 			vertexBufferCount = vertexBuffers.Length;
@@ -909,8 +930,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			GLDevice.ApplyVertexAttributes(
 				vertexBufferBindings,
 				vertexBufferCount,
+				vertexBuffersUpdated,
 				baseVertex
 			);
+			vertexBuffersUpdated = false;
 
 			// Draw!
 			GLDevice.glDrawRangeElements(
@@ -955,8 +978,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			GLDevice.ApplyVertexAttributes(
 				vertexBufferBindings,
 				vertexBufferCount,
+				vertexBuffersUpdated,
 				baseVertex
 			);
+			vertexBuffersUpdated = false;
 
 			// Draw!
 			GLDevice.glDrawElementsInstanced(
@@ -983,8 +1008,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			GLDevice.ApplyVertexAttributes(
 				vertexBufferBindings,
 				vertexBufferCount,
+				vertexBuffersUpdated,
 				0
 			);
+			vertexBuffersUpdated = false;
 
 			// Draw!
 			GLDevice.glDrawArrays(
