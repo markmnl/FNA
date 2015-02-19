@@ -191,6 +191,11 @@ namespace Microsoft.Xna.Framework.Content
 					{
 						return null;
 					}
+					MethodInfo setMethod = property.GetSetMethod();
+					if (setMethod == null || !setMethod.IsPublic)
+					{
+						return null;
+					}
 
 					/* If the read-only property has a type reader,
 					 * and CanDeserializeIntoExistingObject is true,
