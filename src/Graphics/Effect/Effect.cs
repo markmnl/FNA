@@ -900,11 +900,14 @@ namespace Microsoft.Xna.Framework.Graphics
 							// Just assume we wanted Anisotropic if any of these qualify.
 							filter = TextureFilter.Anisotropic;
 						}
-						else if (magFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+						else if (	magFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+								magFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 						{
-							if (minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+							if (	minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+								minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 							{
-								if (mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+								if (	mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+									mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 								{
 									filter = TextureFilter.Point;
 								}
@@ -912,10 +915,15 @@ namespace Microsoft.Xna.Framework.Graphics
 								{
 									filter = TextureFilter.PointMipLinear;
 								}
+								else
+								{
+									throw new NotImplementedException("Unhandled mipfilter type!");
+								}
 							}
 							else if (minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_LINEAR)
 							{
-								if (mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+								if (	mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+									mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 								{
 									filter = TextureFilter.MinLinearMagPointMipPoint;
 								}
@@ -923,13 +931,23 @@ namespace Microsoft.Xna.Framework.Graphics
 								{
 									filter = TextureFilter.MinLinearMagPointMipLinear;
 								}
+								else
+								{
+									throw new NotImplementedException("Unhandled mipfilter type!");
+								}
+							}
+							else
+							{
+								throw new NotImplementedException("Unhandled minfilter type!");
 							}
 						}
 						else if (magFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_LINEAR)
 						{
-							if (minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+							if (	minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+								minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 							{
-								if (mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+								if (	mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+									mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 								{
 									filter = TextureFilter.MinPointMagLinearMipPoint;
 								}
@@ -937,10 +955,15 @@ namespace Microsoft.Xna.Framework.Graphics
 								{
 									filter = TextureFilter.MinPointMagLinearMipLinear;
 								}
+								else
+								{
+									throw new NotImplementedException("Unhandled mipfilter type!");
+								}
 							}
 							else if (minFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_LINEAR)
 							{
-								if (mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT)
+								if (	mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_NONE ||
+									mipFilter == MojoShader.MOJOSHADER_textureFilterType.MOJOSHADER_TEXTUREFILTER_POINT	)
 								{
 									filter = TextureFilter.LinearMipPoint;
 								}
@@ -948,7 +971,19 @@ namespace Microsoft.Xna.Framework.Graphics
 								{
 									filter = TextureFilter.Linear;
 								}
+								else
+								{
+									throw new NotImplementedException("Unhandled mipfilter type!");
+								}
 							}
+							else
+							{
+								throw new NotImplementedException("Unhandled minfilter type!");
+							}
+						}
+						else
+						{
+							throw new NotImplementedException("Unhandled magfilter type!");
 						}
 						samplerChanged = true;
 					}
