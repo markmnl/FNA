@@ -1263,15 +1263,13 @@ namespace Microsoft.Xna.Framework.Graphics
 			{
 				BindVertexBuffer(bindings[i].VertexBuffer.Handle);
 				VertexDeclaration vertexDeclaration = bindings[i].VertexBuffer.VertexDeclaration;
+				IntPtr basePtr = (IntPtr) (
+					vertexDeclaration.VertexStride *
+					(bindings[i].VertexOffset + baseVertex)
+				);
 				foreach (VertexElement element in vertexDeclaration.elements)
 				{
 					// FIXME: Attribute state caching? -flibit
-					IntPtr pointer = (IntPtr) (
-						(
-							vertexDeclaration.VertexStride *
-							(bindings[i].VertexOffset + baseVertex)
-						) + element.Offset
-					);
 					MojoShader.MOJOSHADER_glSetVertexAttribute(
 						XNAToGL.VertexAttribUsage[element.VertexElementUsage],
 						element.UsageIndex,
@@ -1279,7 +1277,7 @@ namespace Microsoft.Xna.Framework.Graphics
 						XNAToGL.VertexAttribType[element.VertexElementFormat],
 						XNAToGL.VertexAttribNormalized(element),
 						(uint) vertexDeclaration.VertexStride,
-						pointer
+						basePtr + element.Offset
 					);
 					if (SupportsHardwareInstancing)
 					{
@@ -1305,14 +1303,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			int vertexOffset
 		) {
 			BindVertexBuffer(OpenGLVertexBuffer.NullBuffer);
+			IntPtr basePtr = ptr + (vertexDeclaration.VertexStride * vertexOffset);
 			foreach (VertexElement element in vertexDeclaration.elements)
 			{
 				// FIXME: Attribute state caching? -flibit
-				IntPtr pointer = (IntPtr) (
-					ptr.ToInt64() + (
-						vertexDeclaration.VertexStride * vertexOffset
-					) + element.Offset
-				);
 				MojoShader.MOJOSHADER_glSetVertexAttribute(
 					XNAToGL.VertexAttribUsage[element.VertexElementUsage],
 					element.UsageIndex,
@@ -1320,7 +1314,7 @@ namespace Microsoft.Xna.Framework.Graphics
 					XNAToGL.VertexAttribType[element.VertexElementFormat],
 					XNAToGL.VertexAttribNormalized(element),
 					(uint) vertexDeclaration.VertexStride,
-					pointer
+					basePtr + element.Offset
 				);
 				if (SupportsHardwareInstancing)
 				{
