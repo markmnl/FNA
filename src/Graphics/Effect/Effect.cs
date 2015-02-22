@@ -1017,6 +1017,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		private unsafe void INTERNAL_parseEffectStruct()
 		{
+            if (Game.IsNoAVI)
+                return;
+
 			MojoShader.MOJOSHADER_effect* effectPtr = (MojoShader.MOJOSHADER_effect*) glEffect.EffectData;
 
 			// Set up Parameters

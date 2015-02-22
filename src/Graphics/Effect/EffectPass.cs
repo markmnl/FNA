@@ -55,7 +55,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void Apply()
 		{
-			if (Game.IsNoAvi)
+			if (Game.IsNoAVI)
 				return;
 			parentEffect.OnApply();
 			parentEffect.INTERNAL_applyEffect(pass);
