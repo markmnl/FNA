@@ -2402,10 +2402,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 
 			public void ResetFramebuffer(
-				GraphicsDevice graphicsDevice,
 				int width,
 				int height,
-				DepthFormat depthFormat
+				DepthFormat depthFormat,
+				bool renderTargetBound
 			) {
 				Width = width;
 				Height = height;
@@ -2442,10 +2442,10 @@ namespace Microsoft.Xna.Framework.Graphics
 							ref depthStencilAttachment
 						);
 						depthStencilAttachment = 0;
-						if (graphicsDevice.RenderTargetCount > 0)
+						if (renderTargetBound)
 						{
 							glDevice.BindFramebuffer(
-								graphicsDevice.GLDevice.targetFramebuffer
+								glDevice.targetFramebuffer
 							);
 						}
 						depthStencilFormat = DepthFormat.None;
@@ -2499,10 +2499,10 @@ namespace Microsoft.Xna.Framework.Graphics
 						0
 					);
 
-					if (graphicsDevice.RenderTargetCount > 0)
+					if (renderTargetBound)
 					{
 						glDevice.BindFramebuffer(
-							graphicsDevice.GLDevice.targetFramebuffer
+							glDevice.targetFramebuffer
 						);
 					}
 
@@ -2512,7 +2512,7 @@ namespace Microsoft.Xna.Framework.Graphics
 				// Keep this state sane.
 				glDevice.glBindTexture(
 					GLenum.GL_TEXTURE_2D,
-					graphicsDevice.GLDevice.Textures[0].Handle
+					glDevice.Textures[0].Handle
 				);
 #endif
 			}

@@ -512,10 +512,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			 * -flibit
 			 */
 			GLDevice.Backbuffer.ResetFramebuffer(
-				this,
 				PresentationParameters.BackBufferWidth,
 				PresentationParameters.BackBufferHeight,
-				PresentationParameters.DepthStencilFormat
+				PresentationParameters.DepthStencilFormat,
+				RenderTargetCount > 0
 			);
 
 			// Now, update the viewport
