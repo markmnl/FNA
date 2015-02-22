@@ -553,7 +553,12 @@ namespace Microsoft.Xna.Framework.Media
 			}
 			else
 			{
-				audioStream.Volume = Volume;
+				/* FIXME: Works around MasterVolume only temporarily!
+				 * Figure out how MasterVolume actually applies to instances,
+				 * then deal with this accordingly.
+				 * -flibit
+				 */
+				audioStream.Volume = Volume * (1.0f / SoundEffect.MasterVolume);
 			}
 		}
 
@@ -730,26 +735,19 @@ namespace Microsoft.Xna.Framework.Media
 			// We're using client-side arrays like CAVEMEN
 			currentDevice.GLDevice.BindVertexBuffer(OpenGLDevice.OpenGLVertexBuffer.NullBuffer);
 
-			// Set up the vertex pointers/arrays.
-			currentDevice.GLDevice.AttributeEnabled[0] = true;
-			currentDevice.GLDevice.AttributeEnabled[1] = true;
-			for (int i = 2; i < currentDevice.GLDevice.AttributeEnabled.Length; i += 1)
-			{
-				currentDevice.GLDevice.AttributeEnabled[i] = false;
-			}
-			currentDevice.GLDevice.FlushGLVertexAttributes();
-			currentDevice.GLDevice.VertexAttribPointer(
+			// We're also setting pointers without any checks, like MAVERICKS
+			currentDevice.GLDevice.glVertexAttribPointer(
 				0,
 				2,
-				VertexElementFormat.Single,
+				OpenGLDevice.GLenum.GL_FLOAT,
 				false,
 				2 * sizeof(float),
 				vertPosPtr
 			);
-			currentDevice.GLDevice.VertexAttribPointer(
+			currentDevice.GLDevice.glVertexAttribPointer(
 				1,
 				2,
-				VertexElementFormat.Single,
+				OpenGLDevice.GLenum.GL_FLOAT,
 				false,
 				2 * sizeof(float),
 				vertTexPtr

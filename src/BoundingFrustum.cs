@@ -145,30 +145,21 @@ namespace Microsoft.Xna.Framework
 			{
 				return ContainmentType.Contains;
 			}
-			bool containsAll = true;
-			bool containsOne = false;
-			foreach (Vector3 corner in frustum.corners)
+			bool intersects = false;
+			for (int i = 0; i < PlaneCount; i += 1)
 			{
-				ContainmentType cornerResult = Contains(corner);
-				if (	cornerResult == ContainmentType.Contains ||
-					cornerResult == ContainmentType.Intersects	)
+				PlaneIntersectionType planeIntersectionType;
+				frustum.Intersects(ref planes[i], out planeIntersectionType);
+				if (planeIntersectionType == PlaneIntersectionType.Front)
 				{
-					containsOne = true;
+					return ContainmentType.Disjoint;
 				}
-				else if (cornerResult == ContainmentType.Disjoint)
+				else if (planeIntersectionType == PlaneIntersectionType.Intersecting)
 				{
-					containsAll = false;
+					intersects = true;
 				}
 			}
-			if (containsAll)
-			{
-				return ContainmentType.Contains;
-			}
-			else if (containsOne)
-			{
-				return ContainmentType.Intersects;
-			}
-			return ContainmentType.Disjoint;
+			return intersects ? ContainmentType.Intersects : ContainmentType.Contains;
 		}
 
 		public ContainmentType Contains(BoundingBox box)
@@ -319,6 +310,25 @@ namespace Microsoft.Xna.Framework
 			ContainmentType containment = default(ContainmentType);
 			this.Contains(ref sphere, out containment);
 			result = containment != ContainmentType.Disjoint;
+		}
+
+		public PlaneIntersectionType Intersects(Plane plane)
+		{
+			PlaneIntersectionType result;
+			Intersects(ref plane, out result);
+			return result;
+		}
+
+		public void Intersects(ref Plane plane, out PlaneIntersectionType result)
+		{
+			result = plane.Intersects(ref corners[0]);
+			for (int i = 1; i < corners.Length; i += 1)
+			{
+				if (plane.Intersects(ref corners[i]) != result)
+				{
+					result = PlaneIntersectionType.Intersecting;
+				}
+			}
 		}
 
 		#endregion

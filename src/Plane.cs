@@ -172,6 +172,30 @@ namespace Microsoft.Xna.Framework
 			sphere.Intersects(ref this, out result);
 		}
 
+		public PlaneIntersectionType Intersects(BoundingFrustum frustum)
+		{
+			return frustum.Intersects(this);
+		}
+
+		#endregion
+
+		#region Internal Methods
+
+		internal PlaneIntersectionType Intersects(ref Vector3 point)
+		{
+			float distance;
+			DotCoordinate(ref point, out distance);
+			if (distance > 0)
+			{
+				return PlaneIntersectionType.Front;
+			}
+			if (distance < 0)
+			{
+				return PlaneIntersectionType.Back;
+			}
+			return PlaneIntersectionType.Intersecting;
+		}
+
 		#endregion
 
 		#region Public Static Methods

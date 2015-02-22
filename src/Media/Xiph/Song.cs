@@ -151,13 +151,14 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal float Volume
 		{
-			get
-			{
-				return soundStream.Volume;
-			}
 			set
 			{
-				soundStream.Volume = value;
+				/* FIXME: Works around MasterVolume only temporarily!
+				 * Figure out how MasterVolume actually applies to instances,
+				 * then deal with this accordingly.
+				 * -flibit
+				 */
+				soundStream.Volume = value * (1.0f / SoundEffect.MasterVolume);
 			}
 		}
 
@@ -166,7 +167,7 @@ namespace Microsoft.Xna.Framework.Media
 		#region Private Variables
 
 		private DynamicSoundEffectInstance soundStream;
-		private Vorbisfile.OggVorbis_File vorbisFile = new Vorbisfile.OggVorbis_File();
+		private IntPtr vorbisFile;
 		private byte[] vorbisBuffer = new byte[4096];
 
 #if !NO_STREAM_THREAD
@@ -182,7 +183,7 @@ namespace Microsoft.Xna.Framework.Media
 		{
 			Vorbisfile.ov_fopen(fileName, out vorbisFile);
 			Vorbisfile.vorbis_info fileInfo = Vorbisfile.ov_info(
-				ref vorbisFile,
+				vorbisFile,
 				0
 			);
 
@@ -191,12 +192,12 @@ namespace Microsoft.Xna.Framework.Media
 			TrackNumber = 0;
 
 			Duration = TimeSpan.FromSeconds(
-				Vorbisfile.ov_time_total(ref vorbisFile, 0)
+				Vorbisfile.ov_time_total(vorbisFile, 0)
 			);
 			Position = TimeSpan.Zero;
 
 			soundStream = new DynamicSoundEffectInstance(
-				fileInfo.rate,
+				(int) fileInfo.rate,
 				(AudioChannels) fileInfo.channels
 			);
 
@@ -247,9 +248,9 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal void Play()
 		{
+			QueueBuffer(null, null);
+			QueueBuffer(null, null);
 			soundStream.BufferNeeded += QueueBuffer;
-			QueueBuffer(null, null);
-			QueueBuffer(null, null);
 
 #if NO_STREAM_THREAD
 			soundStream.Play();
@@ -277,6 +278,8 @@ namespace Microsoft.Xna.Framework.Media
 
 		internal void Stop()
 		{
+			PlayCount = 0;
+
 #if !NO_STREAM_THREAD
 			exitThread = true;
 			if (songThread != null && Thread.CurrentThread != songThread)
@@ -287,7 +290,7 @@ namespace Microsoft.Xna.Framework.Media
 
 			soundStream.Stop();
 			soundStream.BufferNeeded -= QueueBuffer;
-			PlayCount = 0;
+			Vorbisfile.ov_time_seek(vorbisFile, 0.0);
 		}
 
 		#endregion
@@ -302,8 +305,8 @@ namespace Microsoft.Xna.Framework.Media
 			long len = 0;
 			do
 			{
-				len = Vorbisfile.ov_read(
-					ref vorbisFile,
+				len = (long) Vorbisfile.ov_read(
+					vorbisFile,
 					vorbisBuffer,
 					vorbisBuffer.Length,
 					0,
@@ -327,8 +330,11 @@ namespace Microsoft.Xna.Framework.Media
 			// If we're at the end of the file, stop!
 			if (totalBuf.Count == 0)
 			{
-				soundStream.BufferNeeded -= QueueBuffer;
-				OnFinishedPlaying();
+				if (sender != null)
+				{
+					// If sender's null, we didn't even start playing yet?!
+					soundStream.BufferNeeded -= QueueBuffer;
+				}
 				return;
 			}
 
@@ -340,11 +346,6 @@ namespace Microsoft.Xna.Framework.Media
 			);
 		}
 
-		internal void OnFinishedPlaying()
-		{
-			MediaPlayer.OnSongFinishedPlaying(null, null);
-		}
-
 		#endregion
 
 		#region Private Song Update Thread
@@ -352,14 +353,18 @@ namespace Microsoft.Xna.Framework.Media
 #if !NO_STREAM_THREAD
 		private void SongThread()
 		{
-			while (!exitThread)
+			while (!exitThread && soundStream.Update())
 			{
-				exitThread = !soundStream.Update();
-				if (!exitThread)
-				{
-					// Arbitrarily 1 frame in a 15Hz game -flibit
-					Thread.Sleep(67);
-				}
+				// Arbitrarily 1 frame in a 15Hz game -flibit
+				Thread.Sleep(67);
+			}
+			if (PlayCount > 0)
+			{
+				/* If PlayCount is 0 at this point, then we were stopped by the
+				 * calling application, and this event shouldn't happen.
+				 * -flibit
+				 */
+				MediaPlayer.OnSongFinishedPlaying(null, null);
 			}
 		}
 #endif

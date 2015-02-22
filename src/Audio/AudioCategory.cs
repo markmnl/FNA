@@ -57,6 +57,7 @@ namespace Microsoft.Xna.Framework.Audio
 		private MaxInstanceBehavior maxCueBehavior;
 		private ushort maxFadeInMS;
 		private ushort maxFadeOutMS;
+		private CrossfadeType crossfadeType;
 
 		// TODO: Right now only Queue has fade behavior. -flibit
 		private PrimitiveInstance<bool> fading;
@@ -75,7 +76,8 @@ namespace Microsoft.Xna.Framework.Audio
 			byte maxInstances,
 			int maxBehavior,
 			ushort fadeInMS,
-			ushort fadeOutMS
+			ushort fadeOutMS,
+			int fadeType
 		) {
 			INTERNAL_name = name;
 			INTERNAL_volume = new PrimitiveInstance<float>(volume);
@@ -86,6 +88,7 @@ namespace Microsoft.Xna.Framework.Audio
 			maxCueBehavior = (MaxInstanceBehavior) maxBehavior;
 			maxFadeInMS = fadeInMS;
 			maxFadeOutMS = fadeOutMS;
+			crossfadeType = (CrossfadeType) fadeType;
 
 			fading = new PrimitiveInstance<bool>(false);
 			fadingCue = new PrimitiveInstance<Cue>(null);
@@ -194,8 +197,17 @@ namespace Microsoft.Xna.Framework.Audio
 			{
 				if (fading.Value)
 				{
-					float fadeOutPerc = (maxFadeOutMS - fadeTimer.ElapsedMilliseconds) / (float) maxFadeOutMS;
-					float fadeInPerc = fadeTimer.ElapsedMilliseconds / (float) maxFadeInMS;
+					float fadeOutPerc;
+					float fadeInPerc;
+					if (crossfadeType == CrossfadeType.Linear)
+					{
+						fadeOutPerc = (maxFadeOutMS - fadeTimer.ElapsedMilliseconds) / (float) maxFadeOutMS;
+						fadeInPerc = fadeTimer.ElapsedMilliseconds / (float) maxFadeInMS;
+					}
+					else
+					{
+						throw new NotImplementedException("Unhandled CrossfadeType!");
+					}
 					if (fadeInPerc >= 1.0f && fadeOutPerc <= 0.0f)
 					{
 						fadingCue.Value.Stop(AudioStopOptions.Immediate);

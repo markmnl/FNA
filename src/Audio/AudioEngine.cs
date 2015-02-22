@@ -229,7 +229,9 @@ namespace Microsoft.Xna.Framework.Audio
 					ushort fadeOutMS = reader.ReadUInt16();
 
 					// Instance Behavior Flags
-					int maxBehavior = reader.ReadByte() & 0x0F; // FIXME: What?
+					byte instanceFlags = reader.ReadByte();
+					int fadeType = instanceFlags & 0x07;
+					int maxBehavior = instanceFlags >> 3;
 
 					// Unknown value
 					reader.ReadUInt16();
@@ -248,7 +250,8 @@ namespace Microsoft.Xna.Framework.Audio
 							maxInstances,
 							maxBehavior,
 							fadeInMS,
-							fadeOutMS
+							fadeOutMS,
+							fadeType
 						)
 					);
 				}

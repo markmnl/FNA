@@ -54,6 +54,13 @@ namespace Microsoft.Xna.Framework.Audio
 		ReplaceLowestPriority
 	}
 
+	internal enum CrossfadeType : byte
+	{
+		Linear,
+		Logarithmic,
+		EqualPower
+	}
+
 	internal class Variable
 	{
 		public string Name

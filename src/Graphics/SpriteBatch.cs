@@ -89,10 +89,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		#region Private Static Variables
 
 		private static readonly short[] indexData = GenerateIndexArray();
-		private static readonly byte[] spriteEffectCode = Effect.LoadEffectResource(
-			// FIXME: This will change when we move to MojoShader#!
-			"Microsoft.Xna.Framework.Graphics.Effect.Resources.SpriteEffect.ogl.mgfxo"
-		);
+		private static readonly byte[] spriteEffectCode = Resources.SpriteEffect;
 		private static readonly TextureComparer TextureCompare = new TextureComparer();
 		private static readonly BackToFrontComparer BackToFrontCompare = new BackToFrontComparer();
 		private static readonly FrontToBackComparer FrontToBackCompare = new FrontToBackComparer();
@@ -1000,12 +997,6 @@ namespace Microsoft.Xna.Framework.Graphics
 				1,
 				out projection
 			);
-			/* FIXME: Half-pixel offset for GL!
-			 * Abstract out, or remove altogether.
-			 * -flibit
-			 */
-			projection.M41 += -0.5f * projection.M11;
-			projection.M42 += -0.5f * projection.M22;
 			Matrix.Multiply(
 				ref transformMatrix,
 				ref projection,

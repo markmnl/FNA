@@ -295,7 +295,7 @@ namespace Microsoft.Xna.Framework.Audio
 				return false;
 			}
 
-			// Get the processed buffers.
+			// Get the number of processed buffers.
 			int finishedBuffers;
 			AL10.alGetSourcei(
 				INTERNAL_alSource,
@@ -308,18 +308,13 @@ namespace Microsoft.Xna.Framework.Audio
 				return true;
 			}
 
+			// Get the processed buffers.
 			uint[] bufs = new uint[finishedBuffers];
 			AL10.alSourceUnqueueBuffers(
 				INTERNAL_alSource,
 				(IntPtr) finishedBuffers,
 				bufs
 			);
-			PendingBufferCount -= finishedBuffers;
-			if (BufferNeeded != null)
-			{
-				// PendingBufferCount changed during playback, trigger now!
-				BufferNeeded(this, null);
-			}
 
 			// Error check our queuedBuffers list.
 			for (int i = 0; i < finishedBuffers; i += 1)
@@ -332,7 +327,14 @@ namespace Microsoft.Xna.Framework.Audio
 				availableBuffers.Enqueue(newBuf);
 			}
 
-			// Notify the application that we need moar buffers!
+			// PendingBufferCount changed during playback, trigger now!
+			PendingBufferCount -= finishedBuffers;
+			if (BufferNeeded != null)
+			{
+				BufferNeeded(this, null);
+			}
+
+			// Do we need even moar buffers?
 			if (PendingBufferCount <= 2 && BufferNeeded != null)
 			{
 				BufferNeeded(this, null);
