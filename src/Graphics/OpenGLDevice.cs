@@ -1153,7 +1153,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region Effect Methods
 
-		public OpenGLEffect CreateEffect(byte[] effectCode)
+		public virtual OpenGLEffect CreateEffect(byte[] effectCode)
 		{
 			IntPtr effect = IntPtr.Zero;
 			IntPtr glEffect = IntPtr.Zero;
@@ -1180,7 +1180,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			return new OpenGLEffect(effect, glEffect);
 		}
 
-		public void DeleteEffect(OpenGLEffect effect)
+		public virtual void DeleteEffect(OpenGLEffect effect)
 		{
 			Threading.ForceToMainThread(() =>
 			{
@@ -1197,7 +1197,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			});
 		}
 
-		public OpenGLEffect CloneEffect(OpenGLEffect cloneSource)
+		public virtual OpenGLEffect CloneEffect(OpenGLEffect cloneSource)
 		{
 			IntPtr effect = IntPtr.Zero;
 			IntPtr glEffect = IntPtr.Zero;
@@ -1213,7 +1213,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			return new OpenGLEffect(effect, glEffect);
 		}
 
-		public void ApplyEffect(
+		public virtual void ApplyEffect(
 			OpenGLEffect effect,
 			IntPtr technique,
 			uint pass,
@@ -1259,7 +1259,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region glVertexAttribPointer/glVertexAttribDivisor Methods
 
-		public void ApplyVertexAttributes(
+		public virtual void ApplyVertexAttributes(
 			VertexBufferBinding[] bindings,
 			int numBindings,
 			bool bindingsUpdated,
@@ -1325,7 +1325,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 		}
 
-		public void ApplyVertexAttributes(
+		public virtual void ApplyVertexAttributes(
 			VertexDeclaration vertexDeclaration,
 			IntPtr ptr,
 			int vertexOffset

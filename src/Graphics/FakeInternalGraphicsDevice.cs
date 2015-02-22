@@ -155,25 +155,6 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#endregion
 
-		#region Vertex Attribute State Variables
-
-		public Microsoft.Xna.Framework.Graphics.OpenGLDevice.OpenGLVertexAttribute[] Attributes
-		{
-			get;
-			private set;
-		}
-
-		public bool[] AttributeEnabled
-		{
-			get;
-			private set;
-		}
-
-		private bool[] previousAttributeEnabled;
-		private int[] previousAttributeDivisor;
-
-		#endregion
-
 		#region Buffer Binding Cache Variables
 
 		private uint currentVertexBuffer = 0;
@@ -349,27 +330,57 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#endregion
 
-		#region Flush Vertex Attributes Method
+        #region Effect Methods
 
-		public override void FlushGLVertexAttributes()
-		{
-		}
+        public override OpenGLEffect CreateEffect(byte[] effectCode)
+        {
+            IntPtr effect = IntPtr.Zero;
+            IntPtr glEffect = IntPtr.Zero;
+            return new OpenGLEffect(effect, glEffect);
+        }
 
-		#endregion
+        public override void DeleteEffect(OpenGLEffect effect)
+        {
+        }
 
-		#region glVertexAttribPointer Method
+        public OpenGLEffect CloneEffect(OpenGLEffect cloneSource)
+        {
+            IntPtr effect = IntPtr.Zero;
+            IntPtr glEffect = IntPtr.Zero;
+            return new OpenGLEffect(effect, glEffect);
+        }
 
-		public override void VertexAttribPointer(
-			int location,
-			int size,
-			VertexElementFormat type,
-			bool normalized,
-			int stride,
-			IntPtr pointer
-		) {
-		}
+        public override void ApplyEffect(
+            OpenGLEffect effect,
+            IntPtr technique,
+            uint pass,
+            ref MojoShader.MOJOSHADER_effectStateChanges stateChanges
+        )
+        {
+        }
 
-		#endregion
+        #endregion
+
+        #region glVertexAttribPointer/glVertexAttribDivisor Methods
+
+        public override void ApplyVertexAttributes(
+            VertexBufferBinding[] bindings,
+            int numBindings,
+            bool bindingsUpdated,
+            int baseVertex
+        )
+        {
+        }
+
+        public override void ApplyVertexAttributes(
+            VertexDeclaration vertexDeclaration,
+            IntPtr ptr,
+            int vertexOffset
+        )
+        {
+        }
+
+        #endregion
 
 		#region glBindBuffer Methods
 

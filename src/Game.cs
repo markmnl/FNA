@@ -213,6 +213,8 @@ namespace Microsoft.Xna.Framework
 			}
 		}
 
+        internal static bool IsNoAvi { get { return _isNoAVI; } }
+
 		#endregion
 
 		#region Internal Static Properties
