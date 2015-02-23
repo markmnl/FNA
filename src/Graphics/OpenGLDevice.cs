@@ -1965,13 +1965,12 @@ namespace Microsoft.Xna.Framework.Graphics
 		#region SetRenderTargets Method
 
 		public void SetRenderTargets(
-			uint[] attachments,
-			GLenum[] textureTargets,
+			RenderTargetBinding[] renderTargets,
 			uint renderbuffer,
 			DepthFormat depthFormat
 		) {
 			// Bind the right framebuffer, if needed
-			if (attachments == null)
+			if (renderTargets == null)
 			{
 				BindFramebuffer(Backbuffer.Handle);
 				flipViewport = 1;
@@ -1983,8 +1982,23 @@ namespace Microsoft.Xna.Framework.Graphics
 				flipViewport = -1;
 			}
 
+			int i;
+			uint[] attachments = new uint[renderTargets.Length];
+			GLenum[] textureTargets = new GLenum[renderTargets.Length];
+			for (i = 0; i < renderTargets.Length; i += 1)
+			{
+				attachments[i] = renderTargets[i].RenderTarget.texture.Handle;
+				if (renderTargets[i].RenderTarget is RenderTarget2D)
+				{
+					textureTargets[i] = GLenum.GL_TEXTURE_2D;
+				}
+				else
+				{
+					textureTargets[i] = GLenum.GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int) renderTargets[i].CubeMapFace;
+				}
+			}
+
 			// Update the color attachments, DrawBuffers state
-			int i = 0;
 			for (i = 0; i < attachments.Length; i += 1)
 			{
 				if (	attachments[i] != currentAttachments[i] ||
