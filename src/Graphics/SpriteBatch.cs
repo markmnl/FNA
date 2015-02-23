@@ -126,6 +126,10 @@ namespace Microsoft.Xna.Framework.Graphics
 				graphicsDevice,
 				spriteEffectCode
 			);
+
+            if (Game.IsNoAVI)
+                return;
+
 			spriteMatrixTransform = spriteEffect.Parameters["MatrixTransform"];
 			spriteEffectPass = spriteEffect.CurrentTechnique.Passes[0];
 

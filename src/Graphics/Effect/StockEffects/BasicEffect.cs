@@ -147,7 +147,12 @@ namespace Microsoft.Xna.Framework.Graphics
         public Vector3 SpecularColor
         {
             get { return specularColorParam.GetValueVector3(); }
-            set { specularColorParam.SetValue(value); }
+            set 
+            {
+                if (Game.IsNoAVI)
+                    return;
+                specularColorParam.SetValue(value); 
+            }
         }
 
 
@@ -157,7 +162,12 @@ namespace Microsoft.Xna.Framework.Graphics
         public float SpecularPower
         {
             get { return specularPowerParam.GetValueSingle(); }
-            set { specularPowerParam.SetValue(value); }
+            set 
+            {
+                if (Game.IsNoAVI)
+                    return;
+                specularPowerParam.SetValue(value); 
+            }
         }
 
 
@@ -327,7 +337,12 @@ namespace Microsoft.Xna.Framework.Graphics
         public Texture2D Texture
         {
             get { return textureParam.GetValueTexture2D(); }
-            set { textureParam.SetValue(value); }
+            set 
+            {
+                if (Game.IsNoAVI)
+                    return;
+                textureParam.SetValue(value); 
+            }
         }
 
 
@@ -361,6 +376,9 @@ namespace Microsoft.Xna.Framework.Graphics
             : base(device, Resources.BasicEffect)
         {
             CacheEffectParameters(null);
+
+            if (Game.IsNoAVI)
+                return;
 
             DirectionalLight0.Enabled = true;
 
@@ -423,6 +441,9 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         void CacheEffectParameters(BasicEffect cloneSource)
         {
+            if (Game.IsNoAVI)
+                return;
+
             textureParam                = Parameters["Texture"];
             diffuseColorParam           = Parameters["DiffuseColor"];
             emissiveColorParam          = Parameters["EmissiveColor"];

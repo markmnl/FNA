@@ -286,6 +286,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
 			GraphicsDevice = graphicsDevice;
 
+            if (Game.IsNoAVI)
+                return;
+
 			// Send the blob to the GLDevice to be parsed/compiled
 			glEffect = graphicsDevice.GLDevice.CreateEffect(effectCode);
 
@@ -303,6 +306,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		protected Effect(Effect cloneSource)
 		{
 			GraphicsDevice = cloneSource.GraphicsDevice;
+
+            if (Game.IsNoAVI)
+                return;
 
 			// Send the parsed data to be cloned and recompiled by MojoShader
 			glEffect = GraphicsDevice.GLDevice.CloneEffect(
