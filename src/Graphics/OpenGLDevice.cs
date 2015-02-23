@@ -1892,20 +1892,14 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
 		{
-			// Move some stuff around so the glClear works...
+			// glClear depends on the scissor rectangle!
 			if (scissorTestEnable)
 			{
 				glDisable(GLenum.GL_SCISSOR_TEST);
 			}
-			if (!zWriteEnable)
-			{
-				glDepthMask(true);
-			}
-			if (stencilWriteMask != -1)
-			{
-				// AKA 0xFFFFFFFF, ugh -flibit
-				glStencilMask(-1);
-			}
+
+			bool clearDepth = (options & ClearOptions.DepthBuffer) == ClearOptions.DepthBuffer;
+			bool clearStencil = (options & ClearOptions.Stencil) == ClearOptions.Stencil;
 
 			// Get the clear mask, set the clear properties if needed
 			GLenum clearMask = GLenum.GL_ZERO;
@@ -1923,7 +1917,7 @@ namespace Microsoft.Xna.Framework.Graphics
 					currentClearColor = color;
 				}
 			}
-			if ((options & ClearOptions.DepthBuffer) == ClearOptions.DepthBuffer)
+			if (clearDepth)
 			{
 				clearMask |= GLenum.GL_DEPTH_BUFFER_BIT;
 				if (depth != currentClearDepth)
@@ -1931,14 +1925,25 @@ namespace Microsoft.Xna.Framework.Graphics
 					glClearDepth((double) depth);
 					currentClearDepth = depth;
 				}
+				// glClear depends on the depth write mask!
+				if (!zWriteEnable)
+				{
+					glDepthMask(true);
+				}
 			}
-			if ((options & ClearOptions.Stencil) == ClearOptions.Stencil)
+			if (clearStencil)
 			{
 				clearMask |= GLenum.GL_STENCIL_BUFFER_BIT;
 				if (stencil != currentClearStencil)
 				{
 					glClearStencil(stencil);
 					currentClearStencil = stencil;
+				}
+				// glClear depends on the stencil write mask!
+				if (stencilWriteMask != -1)
+				{
+					// AKA 0xFFFFFFFF, ugh -flibit
+					glStencilMask(-1);
 				}
 			}
 
@@ -1950,11 +1955,11 @@ namespace Microsoft.Xna.Framework.Graphics
 			{
 				glEnable(GLenum.GL_SCISSOR_TEST);
 			}
-			if (!zWriteEnable)
+			if (clearDepth && !zWriteEnable)
 			{
 				glDepthMask(false);
 			}
-			if (stencilWriteMask != -1) // AKA 0xFFFFFFFF, ugh -flibit
+			if (clearStencil && stencilWriteMask != -1) // AKA 0xFFFFFFFF, ugh -flibit
 			{
 				glStencilMask(stencilWriteMask);
 			}

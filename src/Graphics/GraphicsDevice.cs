@@ -247,9 +247,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		 * -sulix
 		 */
 #if DEBUG
-		private static readonly Color DiscardColor = new Color(68, 34, 136, 255);
+		private static readonly Vector4 DiscardColor = new Color(68, 34, 136, 255).ToVector4();
 #else
-		private static readonly Color DiscardColor = new Color(0, 0, 0, 255);
+		private static readonly Vector4 DiscardColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 #endif
 
 		#endregion
@@ -570,6 +570,23 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
 		{
+			DepthFormat dsFormat;
+			if (RenderTargetCount == 0)
+			{
+				dsFormat = PresentationParameters.DepthStencilFormat;
+			}
+			else
+			{
+				dsFormat = (renderTargetBindings[0].RenderTarget as IRenderTarget).DepthStencilFormat;
+			}
+			if (dsFormat == DepthFormat.None)
+			{
+				options &= ClearOptions.Target;
+			}
+			else if (dsFormat != DepthFormat.Depth24Stencil8)
+			{
+				options &= ~ClearOptions.Stencil;
+			}
 			GLDevice.Clear(
 				options,
 				color,
@@ -675,7 +692,6 @@ namespace Microsoft.Xna.Framework.Graphics
 
 			int newWidth;
 			int newHeight;
-			DepthFormat depthFormat;
 			RenderTargetUsage clearTarget;
 			if (renderTargets == null || renderTargets.Length == 0)
 			{
@@ -684,7 +700,6 @@ namespace Microsoft.Xna.Framework.Graphics
 				// Set the viewport/scissor to the size of the backbuffer.
 				newWidth = PresentationParameters.BackBufferWidth;
 				newHeight = PresentationParameters.BackBufferHeight;
-				depthFormat = PresentationParameters.DepthStencilFormat;
 				clearTarget = PresentationParameters.RenderTargetUsage;
 
 				// Generate mipmaps for previous targets, if needed
@@ -712,7 +727,6 @@ namespace Microsoft.Xna.Framework.Graphics
 				// Set the viewport/scissor to the size of the first render target.
 				newWidth = target.Width;
 				newHeight = target.Height;
-				depthFormat = target.DepthStencilFormat;
 				clearTarget = target.RenderTargetUsage;
 
 				// Generate mipmaps for previous targets, if needed
@@ -748,16 +762,12 @@ namespace Microsoft.Xna.Framework.Graphics
 			ScissorRectangle = new Rectangle(0, 0, newWidth, newHeight);
 			if (clearTarget == RenderTargetUsage.DiscardContents)
 			{
-				ClearOptions options = ClearOptions.Target;
-				if (depthFormat == DepthFormat.Depth24Stencil8)
-				{
-					options |= ClearOptions.DepthBuffer | ClearOptions.Stencil;
-				}
-				else if (depthFormat != DepthFormat.None)
-				{
-					options |= ClearOptions.DepthBuffer;
-				}
-				Clear(options, DiscardColor, Viewport.MaxDepth, 0);
+				Clear(
+					ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil,
+					DiscardColor,
+					Viewport.MaxDepth,
+					0
+				);
 			}
 		}
 
