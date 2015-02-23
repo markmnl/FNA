@@ -277,7 +277,10 @@ namespace Microsoft.Xna.Framework.Audio
 		#region Public Playback Methods
 
 		public virtual void Play()
-		{
+		{ 
+            if (Game.IsNoAVI)
+                return;
+
 			if (State != SoundState.Stopped)
 			{
 				return;
