@@ -558,7 +558,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region SetRenderTargets Method
 
-        public virtual void SetRenderTargets(
+        public override void SetRenderTargets(
             RenderTargetBinding[] renderTargets,
             uint renderbuffer,
             DepthFormat depthFormat
