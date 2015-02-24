@@ -247,9 +247,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		 * -sulix
 		 */
 #if DEBUG
-		private static readonly Color DiscardColor = new Color(68, 34, 136, 255);
+		private static readonly Vector4 DiscardColor = new Color(68, 34, 136, 255).ToVector4();
 #else
-		private static readonly Color DiscardColor = new Color(0, 0, 0, 255);
+		private static readonly Vector4 DiscardColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 #endif
 
 		#endregion
@@ -524,10 +524,10 @@ namespace Microsoft.Xna.Framework.Graphics
 			 * -flibit
 			 */
 			GLDevice.Backbuffer.ResetFramebuffer(
-				this,
 				PresentationParameters.BackBufferWidth,
 				PresentationParameters.BackBufferHeight,
-				PresentationParameters.DepthStencilFormat
+				PresentationParameters.DepthStencilFormat,
+				RenderTargetCount > 0
 			);
 
 			// Now, update the viewport
@@ -582,6 +582,23 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
 		{
+			DepthFormat dsFormat;
+			if (RenderTargetCount == 0)
+			{
+				dsFormat = PresentationParameters.DepthStencilFormat;
+			}
+			else
+			{
+				dsFormat = (renderTargetBindings[0].RenderTarget as IRenderTarget).DepthStencilFormat;
+			}
+			if (dsFormat == DepthFormat.None)
+			{
+				options &= ClearOptions.Target;
+			}
+			else if (dsFormat != DepthFormat.Depth24Stencil8)
+			{
+				options &= ~ClearOptions.Stencil;
+			}
 			GLDevice.Clear(
 				options,
 				color,
@@ -685,20 +702,17 @@ namespace Microsoft.Xna.Framework.Graphics
 				}
 			}
 
+			int newWidth;
+			int newHeight;
+			RenderTargetUsage clearTarget;
 			if (renderTargets == null || renderTargets.Length == 0)
 			{
-				GLDevice.SetRenderTargets(null, null, 0, DepthFormat.None);
+				GLDevice.SetRenderTargets(null, 0, DepthFormat.None);
 
-				// Set the viewport to the size of the backbuffer.
-				Viewport = new Viewport(0, 0, PresentationParameters.BackBufferWidth, PresentationParameters.BackBufferHeight);
-
-				// Set the scissor rectangle to the size of the backbuffer.
-				ScissorRectangle = new Rectangle(0, 0, PresentationParameters.BackBufferWidth, PresentationParameters.BackBufferHeight);
-
-				if (PresentationParameters.RenderTargetUsage == RenderTargetUsage.DiscardContents)
-				{
-					Clear(DiscardColor);
-				}
+				// Set the viewport/scissor to the size of the backbuffer.
+				newWidth = PresentationParameters.BackBufferWidth;
+				newHeight = PresentationParameters.BackBufferHeight;
+				clearTarget = PresentationParameters.RenderTargetUsage;
 
 				// Generate mipmaps for previous targets, if needed
 				for (int i = 0; i < RenderTargetCount; i += 1)
@@ -715,27 +729,17 @@ namespace Microsoft.Xna.Framework.Graphics
 			}
 			else
 			{
-				uint[] glTarget = new uint[renderTargets.Length];
-				OpenGLDevice.GLenum[] glTargetFace = new OpenGLDevice.GLenum[renderTargets.Length];
-				for (int i = 0; i < renderTargets.Length; i += 1)
-				{
-					glTarget[i] = renderTargets[i].RenderTarget.texture.Handle;
-					if (renderTargets[i].RenderTarget is RenderTarget2D)
-					{
-						glTargetFace[i] = OpenGLDevice.GLenum.GL_TEXTURE_2D;
-					}
-					else
-					{
-						glTargetFace[i] = OpenGLDevice.GLenum.GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int) renderTargets[i].CubeMapFace;
-					}
-				}
 				IRenderTarget target = renderTargets[0].RenderTarget as IRenderTarget;
 				GLDevice.SetRenderTargets(
-					glTarget,
-					glTargetFace,
+					renderTargets,
 					target.DepthStencilBuffer,
 					target.DepthStencilFormat
 				);
+
+				// Set the viewport/scissor to the size of the first render target.
+				newWidth = target.Width;
+				newHeight = target.Height;
+				clearTarget = target.RenderTargetUsage;
 
 				// Generate mipmaps for previous targets, if needed
 				for (int i = 0; i < RenderTargetCount; i += 1)
@@ -763,17 +767,19 @@ namespace Microsoft.Xna.Framework.Graphics
 				Array.Clear(renderTargetBindings, 0, renderTargetBindings.Length);
 				Array.Copy(renderTargets, renderTargetBindings, renderTargets.Length);
 				RenderTargetCount = renderTargets.Length;
+			}
 
-				// Set the viewport to the size of the first render target.
-				Viewport = new Viewport(0, 0, target.Width, target.Height);
-
-				// Set the scissor rectangle to the size of the first render target.
-				ScissorRectangle = new Rectangle(0, 0, target.Width, target.Height);
-
-				if (target.RenderTargetUsage == RenderTargetUsage.DiscardContents)
-				{
-					Clear(DiscardColor);
-				}
+			// Apply new GL state, clear target if requested
+			Viewport = new Viewport(0, 0, newWidth, newHeight);
+			ScissorRectangle = new Rectangle(0, 0, newWidth, newHeight);
+			if (clearTarget == RenderTargetUsage.DiscardContents)
+			{
+				Clear(
+					ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil,
+					DiscardColor,
+					Viewport.MaxDepth,
+					0
+				);
 			}
 		}
 
