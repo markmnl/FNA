@@ -558,12 +558,11 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		#region SetRenderTargets Method
 
-		public override void SetRenderTargets(
-			uint[] attachments,
-			Microsoft.Xna.Framework.Graphics.OpenGLDevice.GLenum[] textureTargets,
-			uint renderbuffer,
-			DepthFormat depthFormat
-		) {
+        public virtual void SetRenderTargets(
+            RenderTargetBinding[] renderTargets,
+            uint renderbuffer,
+            DepthFormat depthFormat
+        ){
 		}
 
 		#endregion
@@ -633,12 +632,12 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
 			}
 
-			public override void ResetFramebuffer(
-				GraphicsDevice graphicsDevice,
-				int width,
-				int height,
-				DepthFormat depthFormat
-			)
+            public override void ResetFramebuffer(
+                int width,
+                int height,
+                DepthFormat depthFormat,
+                bool renderTargetBound
+            )
 			{
 				Width = width;
 				Height = height;
