@@ -169,6 +169,7 @@ namespace MonoGame.Tools.Pipeline
             basename = name;
             TreeIter iter = GetBaseIter ();
             treeview1.Model.SetValue (iter, 1, name);
+            window.ReloadTitle();
         }
 
         public TreeIter GetBaseIter()
@@ -587,6 +588,16 @@ namespace MonoGame.Tools.Pipeline
 
         void Treeview1_DragDrop (object o, DragDropArgs args)
         {
+            args.RetVal = true;
+
+            #if GTK3
+            if(args.Context.ListTargets().Length > 0)
+                Drag.GetData ((Widget)o, args.Context, args.Context.ListTargets()[0], args.Time);
+            #else
+            if(args.Context.Targets.Length > 0)
+                Drag.GetData ((Widget)o, args.Context, args.Context.Targets[0], args.Time);
+            #endif
+
             var siters = this.siters;
             this.siters = new List<TreeIter>();
 
@@ -629,18 +640,93 @@ namespace MonoGame.Tools.Pipeline
             foreach(var si in siters)
             {
                 string spath = GetPathFromIter(si);
+                string dpath = dest_folder + System.IO.Path.GetFileName(spath);
 
                 sourcedata.Add(spath);
-                destdata.Add(dest_folder + System.IO.Path.GetFileName(spath));
+                destdata.Add(dpath);
+
                 types.Add((treeview1.Model.GetValue(si, 2).ToString() == ID_FILE) ? FileType.File : FileType.Folder);
             }
 
             window._controller.Move(sourcedata.ToArray(), destdata.ToArray(), types.ToArray());
+            window.UpdateMenus();
         }
 
         void Treeview1_DragDataReceived (object o, DragDataReceivedArgs args)
         {
-            // TODO: Implement drag and drop from filemanager.
+            args.RetVal = true;
+
+            if (args.SelectionData.Length > 0 && args.SelectionData.Format == 8) {
+
+                byte[] data = args.SelectionData.Data;
+                string encoded = System.Text.Encoding.UTF8.GetString (data);
+                var paths = new List<string> (encoded.Split ('\r', '\n'));
+
+                var files = new List<string>();
+                var folders = new List<string>();
+
+                for (int i = 0; i < paths.Count; ++i)
+                {
+                    if (paths[i].StartsWith("file://"))
+                    {
+                        string path = paths[i].Substring(7);
+
+                        try
+                        {
+                            //convert hex to ascii if any
+                            for(int ih = 0;ih < path.Length;ih++)
+                            {
+                                if (path.Substring(ih, 1) == "%")
+                                {
+                                    string hex = path.Substring(ih + 1, 2);
+                                    path = path.Replace("%" + hex, Convert.ToChar(Convert.ToUInt32(hex, 16)).ToString());
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            window.ShowError("Error", "An unknown error has occured.");
+                            return;
+                        }
+
+                        if (System.IO.File.Exists(path))
+                            files.Add(path);
+                        else
+                            folders.Add(path);
+                    }
+                }
+
+                TreeViewDropPosition pos;
+                TreePath tpath;
+                TreeIter iter;
+
+                if (treeview1.GetDestRowAtPos(args.X, args.Y, out tpath, out pos))
+                {
+                    if (!listStore.GetIter(out iter, tpath))
+                        return;
+                }
+                else
+                {
+                    iter = GetBaseIter();
+                    pos = TreeViewDropPosition.IntoOrAfter;
+                }
+
+                if (treeview1.Model.GetValue(iter, 2).ToString() == ID_FILE)
+                {
+                    if (pos == TreeViewDropPosition.IntoOrBefore || pos == TreeViewDropPosition.Before)
+                        pos = TreeViewDropPosition.Before;
+                    else
+                        pos = TreeViewDropPosition.After;
+                }
+
+                if (pos == TreeViewDropPosition.After || pos == TreeViewDropPosition.Before)
+                if (!treeview1.Model.IterParent(out iter, iter))
+                    return;
+
+                string initDir = (iter.Equals(GetBaseIter())) ? window._controller.GetFullPath ("") : GetPathFromIter(iter);
+                window._controller.DragDrop(initDir, folders.ToArray(), files.ToArray());
+                window.UpdateMenus();
+            }
         }
 
         protected void OnTreeview1CursorChanged (object o, EventArgs args)
@@ -657,6 +743,15 @@ namespace MonoGame.Tools.Pipeline
 
         void ReloadPropertyGrid()
         {
+            string name = "????";
+            string location = "????";
+
+            if (!window._controller.ProjectOpen)
+            {
+                propertiesView.Load(null, name, location);
+                return;
+            }
+
             window._controller.Selection.Clear (window);
             List<TreeIter> iters;
             List<string> ids;
@@ -667,8 +762,6 @@ namespace MonoGame.Tools.Pipeline
 
             var citems = new List<ContentItem> ();
             var dirpaths = new List<string> ();
-            string name = "????";
-            string location = "????";
 
             for(int i = 0;i < paths.Length;i++)
             {

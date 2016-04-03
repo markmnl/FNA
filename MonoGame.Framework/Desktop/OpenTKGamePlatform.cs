@@ -80,21 +80,53 @@ using Microsoft.Xna.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 
+using MonoGame.Utilities;
+
 namespace Microsoft.Xna.Framework
 {
+    /// <summary>
+    /// The backend options for OpenTK.
+    /// </summary>
+    public enum Backend
+    {
+        /// <summary>
+        /// Use the default backend for the current OS. If SDL2 is found, it will be used.
+        /// </summary>
+        Default,
+
+        /// <summary>
+        /// Use the native backend. SDL2 is not considered.
+        /// </summary>
+        Native
+    }
+
+    /// <summary>
+    /// Parameters that are used in configuring the platform.
+    /// </summary>
+    public static class PlatformParameters
+    {
+        /// <summary>
+        /// The preferred backend for OpenTK to use.
+        /// </summary>
+        public static Backend PreferredBackend = MonoGame.Utilities.CurrentPlatform.OS == OS.Linux ? Backend.Native : Backend.Default;
+    }
+
     class OpenTKGamePlatform : GamePlatform
     {
         private OpenTKGameWindow _view;
 		private OpenALSoundController soundControllerInstance = null;
         // stored the current screen state, so we can check if it has changed.
         private bool isCurrentlyFullScreen = false;
-        private Toolkit toolkit;
         private int isExiting; // int, so we can use Interlocked.Increment
+
+        int windowDelay = 2;
         
 		public OpenTKGamePlatform(Game game)
             : base(game)
         {
-            toolkit = Toolkit.Init();
+            if (PlatformParameters.PreferredBackend != Backend.Default)
+                Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
+
             _view = new OpenTKGameWindow(game);
             this.Window = _view;
 
@@ -137,12 +169,23 @@ namespace Microsoft.Xna.Framework
                 // Note 2: Game.Exit() can be called asynchronously from
                 // _view.ProcessEvents() (cases #2 and #3 above), so the
                 // isExiting check must be placed *after* _view.ProcessEvents()
-                if (isExiting > 0)
+                // Note 3: We need to continue processing view events until  
+                // everything gets disposed of, otherwise it will close the window
+                // and make the window handle invalid
+                if (isExiting == 0)
+                    Game.Tick();
+                else if (windowDelay == 2)
                 {
+                    windowDelay--;
+                    Game.ExitEverything();
+                }
+                else if (windowDelay > 0)
+                    windowDelay--;
+                else
+                {
+                    _view.Dispose();
                     break;
                 }
-
-                Game.Tick();
             }
         }
 
@@ -157,20 +200,7 @@ namespace Microsoft.Xna.Framework
             //Net.NetworkSession.Exit();
             Interlocked.Increment(ref isExiting);
 
-            // sound controller must be disposed here
-            // so that it doesn't stop the game from disposing
-            if (soundControllerInstance != null)
-            {
-                soundControllerInstance.Dispose();
-                soundControllerInstance = null;
-            }
             OpenTK.DisplayDevice.Default.RestoreResolution();
-        }
-
-        public override void BeforeInitialize()
-        {
-            _view.Window.Visible = true;
-            base.BeforeInitialize();
         }
 
         public override bool BeforeUpdate(GameTime gameTime)
@@ -248,6 +278,12 @@ namespace Microsoft.Xna.Framework
                 PresentationParameters parms = device.PresentationParameters;
                 parms.BackBufferHeight = (int)bounds.Height;
                 parms.BackBufferWidth = (int)bounds.Width;
+
+                var viewport = new Viewport(0, 0,
+                            parms.BackBufferWidth,
+                            parms.BackBufferHeight);
+
+                device.Viewport = viewport;
             }
 
             if (graphicsDeviceManager.IsFullScreen != isCurrentlyFullScreen)
@@ -286,27 +322,6 @@ namespace Microsoft.Xna.Framework
             var device = Game.GraphicsDevice;
             if (device != null)
                 device.Present();
-        }
-		
-        protected override void Dispose(bool disposing)
-        {
-            if (!IsDisposed)
-            {
-                if (toolkit != null)
-                {
-                    toolkit.Dispose();
-                    toolkit = null;
-                }
-
-                if (_view != null)
-                {
-                    _view.Dispose();
-                    _view = null;
-                }
-            }
-
-			base.Dispose(disposing);
-        }
-			
+        }	
     }
 }

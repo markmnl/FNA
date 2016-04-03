@@ -3,7 +3,11 @@ using System.Diagnostics;
 
 #if OPENGL
 #if MONOMAC
+#if PLATFORM_MACOS_LEGACY
 using MonoMac.OpenGL;
+#else
+using OpenTK.Graphics.OpenGL;
+#endif
 #elif DESKTOPGL
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -63,7 +67,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     return 2;
 
                 case VertexElementFormat.Short4:
-                    return 2;
+                    return 4;
 
                 case VertexElementFormat.NormalizedShort2:
                     return 2;
@@ -719,14 +723,20 @@ namespace Microsoft.Xna.Framework.Graphics
                 glInternalFormat = (PixelInternalFormat)0x8C4F;
                 glFormat = (PixelFormat)All.CompressedTextureFormats;
                 break;
-#endif
-
-
-#if IOS || ANDROID
+            case SurfaceFormat.RgbaAtcExplicitAlpha:
+				glInternalFormat = (PixelInternalFormat)All.AtcRgbaExplicitAlphaAmd;
+				glFormat = (PixelFormat)All.CompressedTextureFormats;
+				break;
+            case SurfaceFormat.RgbaAtcInterpolatedAlpha:
+				glInternalFormat = (PixelInternalFormat)All.AtcRgbaInterpolatedAlphaAmd;
+				glFormat = (PixelFormat)All.CompressedTextureFormats;
+				break;
             case SurfaceFormat.RgbEtc1:
                 glInternalFormat = (PixelInternalFormat)0x8D64; // GL_ETC1_RGB8_OES
                 glFormat = (PixelFormat)All.CompressedTextureFormats;
                 break;
+#endif
+#if IOS || ANDROID
 			case SurfaceFormat.RgbPvrtc2Bpp:
 				glInternalFormat = (PixelInternalFormat)All.CompressedRgbPvrtc2Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
@@ -766,6 +776,29 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        public static bool IsCompressedFormat(this SurfaceFormat format)
+        {
+            switch (format)
+            {
+                case SurfaceFormat.Dxt1:
+                case SurfaceFormat.Dxt1a:
+                case SurfaceFormat.Dxt1SRgb:
+                case SurfaceFormat.Dxt3:
+                case SurfaceFormat.Dxt3SRgb:
+                case SurfaceFormat.Dxt5:
+                case SurfaceFormat.Dxt5SRgb:
+                case SurfaceFormat.RgbaAtcExplicitAlpha:
+                case SurfaceFormat.RgbaAtcInterpolatedAlpha:
+                case SurfaceFormat.RgbaPvrtc2Bpp:
+                case SurfaceFormat.RgbaPvrtc4Bpp:
+                case SurfaceFormat.RgbEtc1:
+                case SurfaceFormat.RgbPvrtc2Bpp:
+                case SurfaceFormat.RgbPvrtc4Bpp:
+                    return true;
+            }
+            return false;
+        }
+
         public static int GetSize(this SurfaceFormat surfaceFormat)
         {
             switch (surfaceFormat)
@@ -784,6 +817,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Dxt5SRgb:
                 case SurfaceFormat.RgbPvrtc4Bpp:
                 case SurfaceFormat.RgbaPvrtc4Bpp:
+                case SurfaceFormat.RgbaAtcExplicitAlpha:
+                case SurfaceFormat.RgbaAtcInterpolatedAlpha:
                     // One texel in DXT3, DXT5 and PVRTC 4bpp is a minimum 4x4 block, which is 16 bytes
                     return 16;
                 case SurfaceFormat.Alpha8:
